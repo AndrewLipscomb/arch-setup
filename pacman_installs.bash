@@ -1,0 +1,43 @@
+pacman -S 
+alsa-utils \
+autoconf \
+automake \
+aws-cli \
+bash-completion \
+chromium \
+code \
+debootstrap \
+dhclient \
+dmenu \
+efibootmgr \
+fakeroot \
+feh \
+gcc \
+git \
+grub \
+i3-gaps \
+i3status \
+iwd \
+jq \
+keepass \
+linux \
+linux-firmware \
+make \
+nano \
+ntfs-3g \
+openssh \
+os-prober \
+picom \
+rsync \
+spotify \
+sudo \
+termite \
+ubuntu-keyring \
+xorg-server \
+xorg-xev \
+xorg-xinit \
+xorg-xrdb \
+xorg-xwininfo \
+zerotier-one 
+
+echo "Also uses spotify from AUR"

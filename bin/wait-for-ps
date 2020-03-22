@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "No argument passed" 
+    exit 1
+fi
+
+~/bin/wait-until "ps aux | grep -v -e grep -e $0 | grep $1"
+exit $?

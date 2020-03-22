@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "No argument passed" 
+    exit 1
+fi
+
+timeout -s SIGINT 1.0 /bin/bash -c "until $1; do sleep 0.1; done"
+exit $?

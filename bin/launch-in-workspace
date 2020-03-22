@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+if [ -z "$1" ] || [ -z "$2" ]; then 
+    echo "Invalid arguments"
+    exit 1
+fi
+
+original_workspace="$(~/bin/current-workspace)" 
+
+if [ -z "$original_workspace" ]; then 
+    echo "Can't seem to get the original workspace"
+    exit 1 
+fi 
+
+launch_workspace="$2"
+command="$1"
+
+~/bin/wait-for-workspace "$launch_workspace"
+i3-msg "exec $command" 
+~/bin/wait-for-ps $command
+/bin/sleep 5
+~/bin/wait-for-workspace "$original_workspace"

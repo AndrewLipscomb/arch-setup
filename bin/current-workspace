@@ -1,0 +1,14 @@
+#!/bin/bash
+
+current=$(i3-msg -t get_workspaces   | jq '.[] | select(.focused==true).name'   | cut -d"\"" -f2)
+
+if [ -z $1 ]; then 
+    echo "$current"
+    exit 0
+else
+    if [[ "$1" =~ "$current" ]]; then
+        exit 0
+    else 
+        exit 1
+    fi 
+fi

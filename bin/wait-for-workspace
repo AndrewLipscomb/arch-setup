@@ -1,0 +1,13 @@
+#!/bin/bash 
+
+if [ -z "$1" ]; then 
+    echo "Needs workspace argument"
+    exit 1
+fi 
+
+set -e
+i3-msg "workspace $1" > /dev/null
+set +e
+
+~/bin/wait-until "~/bin/current-workspace $1" 
+exit $?
