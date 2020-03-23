@@ -4,6 +4,7 @@ autoconf \
 automake \
 aws-cli \
 bash-completion \
+calc \
 chromium \
 code \
 debootstrap \
@@ -14,7 +15,9 @@ fakeroot \
 feh \
 gcc \
 git \
+groff \
 grub \
+htop \
 i3-gaps \
 i3status \
 iwd \
@@ -23,6 +26,7 @@ keepass \
 linux \
 linux-firmware \
 make \
+maim \
 nano \
 ntfs-3g \
 openssh \
@@ -33,6 +37,8 @@ spotify \
 sudo \
 termite \
 ubuntu-keyring \
+xclip \
+xorg-xclipboard \
 xorg-server \
 xorg-xev \
 xorg-xinit \

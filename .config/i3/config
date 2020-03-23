@@ -264,6 +264,8 @@ for_window [class="Chromium"] move --no-auto-back-and-forth to workspace $ws10
 exec --no-startup-id i3-msg "exec /usr/bin/termite"
 exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 exec --no-startup-id i3-msg "exec /usr/bin/spotify"
-exec --no-startup-id i3-msg "exec /usr/bin/code ~/swarmbot/swarmbot_ws/src"
+exec --no-startup-id i3-msg "exec sbcode"
 exec --no-startup-id feh --bg-scale ~/backgrounds/colorful-dark-abstract-polygon-3d-4k-39.jpg
 exec --no-startup-id picom -b
+
+bindsym Print exec --no-startup-id take-screenshot

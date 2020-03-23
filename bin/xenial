@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo machinectl shell andrew@lippy-swarmbot-builder /bin/bash
