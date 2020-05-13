@@ -1,5 +1,6 @@
 [options]
 scrollback_lines = 1000
+font = Monospace 14
 
 [colors]
 # Challenger Deep - https://challenger-deep-theme.github.io/

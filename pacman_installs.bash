@@ -32,18 +32,23 @@ ntfs-3g \
 openssh \
 os-prober \
 picom \
+pulseaudio \
 rsync \
 spotify \
 sudo \
 termite \
 ubuntu-keyring \
+usbutils \
+vlc \
 xclip \
 xorg-xclipboard \
 xorg-server \
 xorg-xev \
 xorg-xinit \
 xorg-xrdb \
+xorg-xrandr \
 xorg-xwininfo \
-zerotier-one 
+zerotier-one \
+zvbi
 
 echo "Also uses spotify from AUR"

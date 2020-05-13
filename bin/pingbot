@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Need a robot name dinglehead"
+    exit 1
+fi
+
+ping "v-$1.swarmfarm.com"
