@@ -1,3 +1,10 @@
 {
-    "keyboard.dispatch": "keyCode"
+    "keyboard.dispatch": "keyCode",
+    "files.trimTrailingWhitespace": true,
+    "search.exclude": {
+        "build": true
+    },
+    "C_Cpp.default.systemIncludePath": [
+        "/home/andrew/test_include"
+    ]
 }

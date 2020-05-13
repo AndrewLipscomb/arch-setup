@@ -2,5 +2,5 @@
 
 sudo machinectl shell andrew@lippy-swarmbot-builder \
     /bin/bash -c "source /opt/ros/kinetic/setup.bash; \
-    cd swarmbot/swarmbot_ws; \
-    catkin_make -j4 -DCMAKE_BUILD_TYPE=Debug"
+    cd swarmbot4/swarmbot_ws; \
+    catkin_make -j2 -DCMAKE_BUILD_TYPE=Debug"

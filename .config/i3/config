@@ -46,6 +46,8 @@ bindsym $mod+Return exec termite
 
 # kill focused window
 bindsym $mod+Shift+q kill
+bindsym $mod+Shift+KP_Subtract kill
+bindsym $mod+Ctrl+KP_Subtract kill
 
 # start dmenu (a program launcher)
 bindsym $mod+d exec dmenu_run
@@ -90,7 +92,10 @@ bindsym $mod+f fullscreen toggle
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+s layout stacking
 bindsym $mod+w layout tabbed
+bindsym $mod+KP_Add layout tabbed 
 bindsym $mod+e layout toggle split
+bindsym $mod+KP_Enter layout toggle split
+
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
@@ -152,68 +157,68 @@ bindsym $mod+KP_Insert workspace number $ws10
 bindsym $mod+Mod2+KP_0 workspace number $ws10
 
 # move focused container to workspace, then follow the window
-bindsym $mod+Ctrl+1          exec move-to-workspace $ws1
-bindsym $mod+Ctrl+KP_End     exec move-to-workspace $ws1
-bindsym $mod+Ctrl+Mod2+KP_1  exec move-to-workspace $ws1
-bindsym $mod+Ctrl+2          exec move-to-workspace $ws2
-bindsym $mod+Ctrl+KP_Down    exec move-to-workspace $ws2
-bindsym $mod+Ctrl+Mod2+KP_2  exec move-to-workspace $ws2
-bindsym $mod+Ctrl+3          exec move-to-workspace $ws3
-bindsym $mod+Ctrl+KP_Next    exec move-to-workspace $ws3
-bindsym $mod+Ctrl+Mod2+KP_3  exec move-to-workspace $ws3
-bindsym $mod+Ctrl+4          exec move-to-workspace $ws4
-bindsym $mod+Ctrl+KP_Left    exec move-to-workspace $ws4
-bindsym $mod+Ctrl+Mod2+KP_4  exec move-to-workspace $ws4
-bindsym $mod+Ctrl+5          exec move-to-workspace $ws5
-bindsym $mod+Ctrl+KP_Begin   exec move-to-workspace $ws5
-bindsym $mod+Ctrl+Mod2+KP_5  exec move-to-workspace $ws5
-bindsym $mod+Ctrl+6          exec move-to-workspace $ws6
-bindsym $mod+Ctrl+KP_Right   exec move-to-workspace $ws6
-bindsym $mod+Ctrl+Mod2+KP_6  exec move-to-workspace $ws6
-bindsym $mod+Ctrl+7          exec move-to-workspace $ws7
-bindsym $mod+Ctrl+KP_Home    exec move-to-workspace $ws7
-bindsym $mod+Ctrl+Mod2+KP_7  exec move-to-workspace $ws7
-bindsym $mod+Ctrl+8          exec move-to-workspace $ws8
-bindsym $mod+Ctrl+KP_Up      exec move-to-workspace $ws8
-bindsym $mod+Ctrl+Mod2+KP_8  exec move-to-workspace $ws8
-bindsym $mod+Ctrl+9          exec move-to-workspace $ws9
-bindsym $mod+Ctrl+KP_Prior   exec move-to-workspace $ws9
-bindsym $mod+Ctrl+Mod2+KP_9  exec move-to-workspace $ws9
-bindsym $mod+Ctrl+0          exec move-to-workspace $ws10
-bindsym $mod+Ctrl+KP_Insert  exec move-to-workspace $ws10
-bindsym $mod+Ctrl+Mod2+KP_0  exec move-to-workspace $ws10
+bindsym $mod+Mod1+1          exec move-to-workspace $ws1
+bindsym $mod+Mod1+KP_End     exec move-to-workspace $ws1
+bindsym $mod+Mod1+Mod2+KP_1  exec move-to-workspace $ws1
+bindsym $mod+Mod1+2          exec move-to-workspace $ws2
+bindsym $mod+Mod1+KP_Down    exec move-to-workspace $ws2
+bindsym $mod+Mod1+Mod2+KP_2  exec move-to-workspace $ws2
+bindsym $mod+Mod1+3          exec move-to-workspace $ws3
+bindsym $mod+Mod1+KP_Next    exec move-to-workspace $ws3
+bindsym $mod+Mod1+Mod2+KP_3  exec move-to-workspace $ws3
+bindsym $mod+Mod1+4          exec move-to-workspace $ws4
+bindsym $mod+Mod1+KP_Left    exec move-to-workspace $ws4
+bindsym $mod+Mod1+Mod2+KP_4  exec move-to-workspace $ws4
+bindsym $mod+Mod1+5          exec move-to-workspace $ws5
+bindsym $mod+Mod1+KP_Begin   exec move-to-workspace $ws5
+bindsym $mod+Mod1+Mod2+KP_5  exec move-to-workspace $ws5
+bindsym $mod+Mod1+6          exec move-to-workspace $ws6
+bindsym $mod+Mod1+KP_Right   exec move-to-workspace $ws6
+bindsym $mod+Mod1+Mod2+KP_6  exec move-to-workspace $ws6
+bindsym $mod+Mod1+7          exec move-to-workspace $ws7
+bindsym $mod+Mod1+KP_Home    exec move-to-workspace $ws7
+bindsym $mod+Mod1+Mod2+KP_7  exec move-to-workspace $ws7
+bindsym $mod+Mod1+8          exec move-to-workspace $ws8
+bindsym $mod+Mod1+KP_Up      exec move-to-workspace $ws8
+bindsym $mod+Mod1+Mod2+KP_8  exec move-to-workspace $ws8
+bindsym $mod+Mod1+9          exec move-to-workspace $ws9
+bindsym $mod+Mod1+KP_Prior   exec move-to-workspace $ws9
+bindsym $mod+Mod1+Mod2+KP_9  exec move-to-workspace $ws9
+bindsym $mod+Mod1+0          exec move-to-workspace $ws10
+bindsym $mod+Mod1+KP_Insert  exec move-to-workspace $ws10
+bindsym $mod+Mod1+Mod2+KP_0  exec move-to-workspace $ws10
 
 # New terminals in workspace 
-bindsym $mod+Mod1+1          exec term-in-workspace $ws1
-bindsym $mod+Mod1+KP_End     exec term-in-workspace $ws1
-bindsym $mod+Mod1+Mod2+KP_1  exec term-in-workspace $ws1
-bindsym $mod+Mod1+2          exec term-in-workspace $ws2
-bindsym $mod+Mod1+KP_Down    exec term-in-workspace $ws2
-bindsym $mod+Mod1+Mod2+KP_2  exec term-in-workspace $ws2
-bindsym $mod+Mod1+3          exec term-in-workspace $ws3
-bindsym $mod+Mod1+KP_Next    exec term-in-workspace $ws3
-bindsym $mod+Mod1+Mod2+KP_3  exec term-in-workspace $ws3
-bindsym $mod+Mod1+4          exec term-in-workspace $ws4
-bindsym $mod+Mod1+KP_Left    exec term-in-workspace $ws4
-bindsym $mod+Mod1+Mod2+KP_4  exec term-in-workspace $ws4
-bindsym $mod+Mod1+5          exec term-in-workspace $ws5
-bindsym $mod+Mod1+KP_Begin   exec term-in-workspace $ws5
-bindsym $mod+Mod1+Mod2+KP_5  exec term-in-workspace $ws5
-bindsym $mod+Mod1+6          exec term-in-workspace $ws6
-bindsym $mod+Mod1+KP_Right   exec term-in-workspace $ws6
-bindsym $mod+Mod1+Mod2+KP_6  exec term-in-workspace $ws6
-bindsym $mod+Mod1+7          exec term-in-workspace $ws7
-bindsym $mod+Mod1+KP_Home    exec term-in-workspace $ws7
-bindsym $mod+Mod1+Mod2+KP_7  exec term-in-workspace $ws7
-bindsym $mod+Mod1+8          exec term-in-workspace $ws8
-bindsym $mod+Mod1+KP_Up      exec term-in-workspace $ws8
-bindsym $mod+Mod1+Mod2+KP_8  exec term-in-workspace $ws8
-bindsym $mod+Mod1+9          exec term-in-workspace $ws9
-bindsym $mod+Mod1+KP_Prior   exec term-in-workspace $ws9
-bindsym $mod+Mod1+Mod2+KP_9  exec term-in-workspace $ws9
-bindsym $mod+Mod1+0          exec term-in-workspace $ws10
-bindsym $mod+Mod1+KP_Insert  exec term-in-workspace $ws10
-bindsym $mod+Mod1+Mod2+KP_0  exec term-in-workspace $ws10
+bindsym $mod+Ctrl+1          exec term-in-workspace $ws1
+bindsym $mod+Ctrl+KP_End     exec term-in-workspace $ws1
+bindsym $mod+Ctrl+Mod2+KP_1  exec term-in-workspace $ws1
+bindsym $mod+Ctrl+2          exec term-in-workspace $ws2
+bindsym $mod+Ctrl+KP_Down    exec term-in-workspace $ws2
+bindsym $mod+Ctrl+Mod2+KP_2  exec term-in-workspace $ws2
+bindsym $mod+Ctrl+3          exec term-in-workspace $ws3
+bindsym $mod+Ctrl+KP_Next    exec term-in-workspace $ws3
+bindsym $mod+Ctrl+Mod2+KP_3  exec term-in-workspace $ws3
+bindsym $mod+Ctrl+4          exec term-in-workspace $ws4
+bindsym $mod+Ctrl+KP_Left    exec term-in-workspace $ws4
+bindsym $mod+Ctrl+Mod2+KP_4  exec term-in-workspace $ws4
+bindsym $mod+Ctrl+5          exec term-in-workspace $ws5
+bindsym $mod+Ctrl+KP_Begin   exec term-in-workspace $ws5
+bindsym $mod+Ctrl+Mod2+KP_5  exec term-in-workspace $ws5
+bindsym $mod+Ctrl+6          exec term-in-workspace $ws6
+bindsym $mod+Ctrl+KP_Right   exec term-in-workspace $ws6
+bindsym $mod+Ctrl+Mod2+KP_6  exec term-in-workspace $ws6
+bindsym $mod+Ctrl+7          exec term-in-workspace $ws7
+bindsym $mod+Ctrl+KP_Home    exec term-in-workspace $ws7
+bindsym $mod+Ctrl+Mod2+KP_7  exec term-in-workspace $ws7
+bindsym $mod+Ctrl+8          exec term-in-workspace $ws8
+bindsym $mod+Ctrl+KP_Up      exec term-in-workspace $ws8
+bindsym $mod+Ctrl+Mod2+KP_8  exec term-in-workspace $ws8
+bindsym $mod+Ctrl+9          exec term-in-workspace $ws9
+bindsym $mod+Ctrl+KP_Prior   exec term-in-workspace $ws9
+bindsym $mod+Ctrl+Mod2+KP_9  exec term-in-workspace $ws9
+bindsym $mod+Ctrl+0          exec term-in-workspace $ws10
+bindsym $mod+Ctrl+KP_Insert  exec term-in-workspace $ws10
+bindsym $mod+Ctrl+Mod2+KP_0  exec term-in-workspace $ws10
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
@@ -265,7 +270,13 @@ exec --no-startup-id i3-msg "exec /usr/bin/termite"
 exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 exec --no-startup-id i3-msg "exec /usr/bin/spotify"
 exec --no-startup-id i3-msg "exec sbcode"
-exec --no-startup-id feh --bg-scale ~/backgrounds/colorful-dark-abstract-polygon-3d-4k-39.jpg
+exec --no-startup-id feh --bg-scale ~/backgrounds/7jZiKGEK6q3pMfQ3Ut35kQ.jpg
 exec --no-startup-id picom -b
 
 bindsym Print exec --no-startup-id take-screenshot
+
+# Gaps specific
+for_window [class=".*"] border pixel 0
+gaps inner 5
+smart_gaps on
+

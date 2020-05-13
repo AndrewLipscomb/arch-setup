@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z $1 ]; then 
+    echo "Needs a robot"
+    exit 1
+fi
+
+ssh swarmbot@v-$1.swarmfarm.com

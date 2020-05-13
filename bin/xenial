@@ -1,3 +1,11 @@
 #!/bin/bash
 
-sudo machinectl shell andrew@lippy-swarmbot-builder /bin/bash
+username=andrew
+
+echo "$1"
+
+if [ -n "$1" ]; then
+    username="$1"
+fi
+
+sudo machinectl shell $username@lippy-swarmbot-builder /bin/bash

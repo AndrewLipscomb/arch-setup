@@ -1,0 +1,24 @@
+#!/bin/bash
+
+mount_user_hostname="$1"
+remote_mount_dir="$2"
+local_mount_dir="$3"
+
+if [ ! -d $local_mount_dir ]; then 
+    echo "$local_mount_dir does not appear to be a directory"
+    exit 1
+fi 
+
+if mount | grep " $local_mount_dir " > /dev/null; then
+    echo "Unmounting $local_mount_dir"
+    if sudo umount -f "$local_mount_dir"; then 
+        sleep 1
+        sshfs "$mount_user_hostname:$remote_mount_dir" "$local_mount_dir"
+        exit $?
+    else 
+        exit 1
+    fi
+else
+    sshfs "$mount_user_hostname:$remote_mount_dir" "$local_mount_dir"
+    exit $?
+fi

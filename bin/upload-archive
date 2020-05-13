@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -e
+
+cd ~/external/elsplitter
+
+UPLOAD_ID=ZmLh0hIqhuw44npfIGYBSe5GVzXv142Yhn57SkOOPrksScjlRcKYEtwSZ5ABR049ficaiuGrhfBBNhNYoMvWVZPBPzwS
+
+uploaded_bytes=0
+if [ -f last_hash ]; then
+    rm last_hash
+fi
+touch last_hash
+
+for fil in 30rock_* ; do
+    filesize="$(ls -l $fil | cut -d' ' -f 5)"
+    start_next=$uploaded_bytes
+    end_next=$(calc "$uploaded_bytes + $filesize - 1" | xargs)
+    uploaded_bytes=$(calc "$uploaded_bytes + $filesize" | xargs)
+
+    echo "Processing $fil"
+    # aws glacier upload-multipart-part \
+    #     --profile personal \
+    #     --account-id - \
+    #     --upload-id $UPLOAD_ID \
+    #     --vault-name tv \
+    #     --body $fil \
+    #     --range "bytes $start_next-$end_next/*"
+
+    openssl dgst -sha256 -binary $fil > this_hash
+    cat last_hash this_hash > last_hash_cat
+    openssl dgst -sha256 -binary last_hash_cat > last_hash
+    openssl dgst -sha256 last_hash_cat
+done
+
+# openssl dgst -sha256 last_hash
+
+#final hash for 64mb == c189259751a9fd6294a4d6cbd72aaf7a271a3b2dfb99143abe8d2f5c40a41610
+# 1mb hash = 046e22f9c21b91a4080cff981cb1f6f14a210c7d825e04427171e1270b44792f
+
+# 1mb hash = 8b7b66dc233b94ebb0883a7ff1c2597ea017ac0d8e74f6d5d98562e1ebd238e7
+
+
+# aws glacier complete-multipart-upload \
+#     --profile personal \
+#     --checksum 8b7b66dc233b94ebb0883a7ff1c2597ea017ac0d8e74f6d5d98562e1ebd238e7 \
+#     --upload-id ZmLh0hIqhuw44npfIGYBSe5GVzXv142Yhn57SkOOPrksScjlRcKYEtwSZ5ABR049ficaiuGrhfBBNhNYoMvWVZPBPzwS \
+#     --account-id - \
+#     --vault-name tv \
+#     --archive-size 23912217207
+
+
+#      complete-multipart-upload --checksum $TREEHASH --archive-size 3145728 --upload-id $UPLOADID --account-id - --vault-name myvault
+
+# [andrew@andrew-remote butts]$ aws glacier upload-multipart-part --profile personal --upload-id $UPLOAD_ID --body chunkaa --range 'bytes 0-1048575/*' --account-id - --vault-name test
+# {
+#     "checksum": "c346f89dedd20876dcda0a3a232d4e0b0025b3e48d66a26f7f71ad10c95f4f4a"
+# }
+# [andrew@andrew-remote butts]$ aws glacier upload-multipart-part --profile personal --upload-id $UPLOAD_ID --body chunkab --range 'bytes 1048576-2097151/*' --account-id - --vault-name test
+# {
+#     "checksum": "6b2fbb6ee7904694450adc212dbd613e68de873704d88b88ae0f8df61ef3858e"
+# }
+# [andrew@andrew-remote butts]$ aws glacier upload-multipart-part --profile personal --upload-id $UPLOAD_ID --body chunkac --range 'bytes 2097152-3145727/*' --account-id - --vault-name test
+# {
+#     "checksum": "b4c038f474205c71ac5f8b3be4e1263dbb9175d6731fe12755a14a6a57c0a1a9"
+# }
+# [andrew@andrew-remote butts]$ aws glacier upload-multipart-part --profile personal --upload-id $UPLOAD_ID --body chunkad --range 'bytes 3145728-3198327/*' --account-id - --vault-name test
+# {
+#     "checksum": "2f7a1063af1348c05cceb1cdb4a28785e575224b256905fc60c5da1a2bbd73fe"
+# }
+
+
+echo -e '\xc346f89dedd20876dcda0a3a232d4e0b0025b3e48d66a26f7f71ad10c95f4f4a' > hash1
+echo -e '\x6b2fbb6ee7904694450adc212dbd613e68de873704d88b88ae0f8df61ef3858e' > hash2
+echo -e '\xb4c038f474205c71ac5f8b3be4e1263dbb9175d6731fe12755a14a6a57c0a1a9' > hash3
+echo -e '\x2f7a1063af1348c05cceb1cdb4a28785e575224b256905fc60c5da1a2bbd73fe' > hash4
+
+cat hash1 hash2 > hash12; openssl dgst -sha256 -binary hash12 > hash12hash
+cat hash3 hash4 > hash34; openssl dgst -sha256 -binary hash34 > hash34hash
+cat hash12hash hash34hash > hash1234; openssl dgst -sha256 hash1234

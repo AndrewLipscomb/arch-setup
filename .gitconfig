@@ -1,3 +1,5 @@
 [user]
 	email = lipscomb.andrew@gmail.com
 	name = Andrew Lipscomb
+[core]
+	editor = nano

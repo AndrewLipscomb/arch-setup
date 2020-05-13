@@ -1,3 +1,3 @@
 #!/bin/bash
 
-code ~/swarmbot/swarmbot_ws/src
+code ~/xenial/swarmbot4/swarmbot_ws/src
