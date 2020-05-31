@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for branch in $(git branch --merged | grep -v \* | grep -v -E "^  test$" | grep -v -E "^  master$"); do 
+    if git merge --no-commit "$branch" | grep -q "Already up to date."; then 
+        git branch -D "$branch"
+    else 
+        echo "Something terribly wrong for branch $branch"
+        exit 1
+    fi
+done

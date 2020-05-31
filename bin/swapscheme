@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if grep -q challenger ~/.config/termite/config; then
+    cp ~/.config/termite/config_gh ~/.config/termite/config
+    echo "Moving to outdoor"
+else
+    cp ~/.config/termite/config_challenger ~/.config/termite/config
+    echo "Moving to indoor"
+fi
+killall -USR1 termite
+

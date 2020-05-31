@@ -36,6 +36,7 @@ pulseaudio \
 rsync \
 spotify \
 sudo \
+sshfs \
 termite \
 ubuntu-keyring \
 usbutils \

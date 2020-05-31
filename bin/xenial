@@ -8,4 +8,4 @@ if [ -n "$1" ]; then
     username="$1"
 fi
 
-sudo machinectl shell $username@lippy-swarmbot-builder /bin/bash
+sudo machinectl shell $username@swarmbot /bin/bash

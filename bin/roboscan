@@ -1,0 +1,14 @@
+#!/bin/bash 
+
+robot="$1"
+echo "Scanning for $robot"
+
+while true; do 
+
+iwctl station wlan0 show | grep -E -q "Scanning[[:space:]]+no" && iwctl station wlan0 scan
+if iwctl station wlan0 get-networks  | grep "$robot"; then 
+    iwctl station wlan0 connect "$robot"
+    break
+fi
+
+done 

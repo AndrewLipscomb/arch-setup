@@ -1,0 +1,18 @@
+#!/bin/bash
+
+xrandr_output="$(/usr/bin/xrandr --query)"
+
+side="$1"
+if [ -z "$side" ]; then 
+    side="left"
+fi
+
+if echo "$xrandr_output" | grep "HDMI-2 connected"; then 
+    xrandr --output HDMI-2 --auto "--$side-of" eDP-1
+fi
+
+if echo "$xrandr_output" | grep "HDMI-2 disconnected"; then 
+    xrandr --output HDMI-2 --off
+fi 
+
+/usr/bin/echo "$xrandr_output" > /home/andrew/outkern

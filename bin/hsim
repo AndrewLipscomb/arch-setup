@@ -1,9 +1,7 @@
 #!/bin/bash
 
-sudo machinectl shell andrew@lippy-swarmbot-builder \
-    /bin/bash -c "source /opt/ros/kinetic/setup.bash; \
-    source ~/swarmbot4/swarmbot_ws/devel/setup.bash; \
-    export ROS_MASTER_URI=http://localhost:11311; \
-    export ROS_HOSTNAME=localhost; \
-    export launch_name=sim; \
-    roslaunch simulation headless_simulation.launch"
+args="roslaunch simulation headless_simulation.launch $@"
+
+sudo machinectl shell andrew@swarmbot \
+    /bin/bash -c "source ~/.config/swarmfarm/swarmbot_build_env; \
+    $args"

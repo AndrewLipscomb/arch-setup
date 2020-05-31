@@ -1,6 +1,213 @@
 #!/bin/bash
 
-sudo machinectl shell andrew@lippy-swarmbot-builder \
-    /bin/bash -c "source /opt/ros/kinetic/setup.bash; \
-    cd swarmbot4/swarmbot_ws; \
-    catkin_make -j2 -DCMAKE_BUILD_TYPE=Debug"
+set -e
+
+script_name=`basename "$0"`
+container_name="swarmbot"
+cores="4"
+cmake_type="Debug"
+user="$(id --user --name)"
+env_file="~/.config/swarmfarm/swarmbot_build_env"
+
+default_local_hosts="localhost/4"
+default_dist_cores="16"
+default_dist_hosts=$'localhost/4\n192.168.50.21/6\n192.168.50.22/6'
+
+hosts="$default_local_hosts"
+
+function print_help {
+    echo "Builds swarmbot - Lippy style. This means nspawn isolated environments"
+    echo "Primarily intended at confident Linux users who understand cmake, catkin, distcc, ccache and nspawn"
+    echo "All arguments are position independent"
+    echo ""
+    echo "Arguments"
+    echo ""
+    echo " What to build"
+    echo "   -p | --package {PACKAGE}     the package to build - appended to catkin_make as '--pkg {PACKAGE}'. Default builds everything"
+    echo "   -t | --tests                 whether to build tests"
+    echo "        --debug | --release "
+    echo "        --cmake-type {TYPE} "
+    echo "                                the CMAKE_BUILD_TYPE. Defaults to Debug"
+    echo ""
+    echo " How to build it"
+    echo "   -c | --cores {CORES}         the amount of cores to use. Defaults to 4, and ups to 16 automatically if --dist is specified"
+    echo "   -d | --dist                  use a distributed build. This is hardcoded around the Bendee distcc config"
+    echo "   -h | --hosts {HOSTS}         the distcc hosts to use. Defaults to the bendee standard. This argument requires newline seperation ala the hosts config file for distcc"
+    echo "   -e | --env-file {FILE}       an environment file to source before building. This can be a systemd EnvironmentFile or a bash file"
+    echo "                                Defaults to ~/.swarmbot_build_env"
+    echo "        --no-env                Turns off environment file sourcing"
+    echo ""
+    echo " Where to build it"
+    echo "   -u | --user {NAME}           the user to run as inside the container. Defaults to the current user" 
+    echo "   -n | --container-name {NAME} the container to build into. Defaults to swarmbot. Expects no user-namespacing inside the container - use -u if this is not the case" 
+    echo "        --help                  print this help text"
+    echo "        --dry-run               prints extra debugging info to tell what is going wrong"
+}
+
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -c|--cores)
+        if [ -z "$seen_cores" ]; then
+            shift
+            cores="$1"
+            seen_cores="yes"
+            shift # past argument
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    -d|--dist)
+        if [ -z "$seen_dist" ]; then
+            seen_dist="yes"
+            # Bump cores if not manually specified
+            if [ -z "$seen_cores" ]; then
+                cores="16"
+            fi
+            if [ -z "$seen_hosts" ]; then
+                hosts="$default_dist_hosts"
+            fi
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    -n|--container-name)
+        if [ -z "$seen_name" ]; then
+            shift
+            container_name="$1"
+            seen_name="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;     
+    --debug|--release|--cmake-type)
+        if [ -z "$seen_type" ]; then
+            if [[ "$1" == "--debug" ]]; then 
+                cmake_type="Debug"
+            elif [[ "$1" == "--release" ]]; then
+                cmake_type="Release"
+            else 
+                shift
+                cmake_type="$1"
+            fi
+            seen_type="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;   
+    -h|--hosts)
+        if [ -z "$seen_hosts" ]; then
+            shift
+            hosts="$1"
+            seen_hosts="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;    
+    -u|--user)
+        if [ -z "$seen_user" ]; then
+            shift
+            user="$1"
+            seen_user="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;  
+    -e|--env-file)
+        if [ -z "$seen_env" ]; then
+            shift
+            env_file="$1"
+            seen_env="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once or both $1 and --no-env - see $script_name --help"
+            exit 1
+        fi
+        ;;        
+    --no-env)
+        if [ -z "$seen_env" ]; then
+            source_command="echo 'Not sourcing environment'"
+            seen_env="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once or both $1 and --env-file - see $script_name --help"
+            exit 1
+        fi
+        ;;                
+    -p|--package)
+        if [ -z "$package_name" ]; then
+            shift
+            package_name="--pkg $1"
+            shift
+        else 
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    -t|--tests)
+        if [ -z "$package_name" ]; then
+            shift
+            package_name="--pkg $1"
+            shift
+        else 
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    --dry-run)
+        if [ -z "$seen_debug" ]; then
+            do_dryrun="true"
+            seen_debug="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;                                        
+    --help)
+        print_help
+        exit 0
+        ;;
+    *)    # unknown option
+        >&2 echo "Unknown option $key"
+        exit 1
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [ -z "$source_command" ]; then 
+    source_command="if [ -f ${env_file} ]; then source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
+fi
+cd_command="cd swarmbot4/swarmbot_ws"
+set_c_and_cxx_compiler="export CC='ccache gcc'; export CXX='ccache g++'"
+set_ccache_prefix="export CCACHE_PREFIX=distcc"
+set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
+catkin_command="catkin_make ${package_name} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type}"
+
+final_command="${source_command}; ${cd_command}; ${set_distcc_file}; ${set_c_and_cxx_compiler}; ${set_ccache_prefix}; ${catkin_command}"
+
+if [ -z "$do_dryrun" ]; then 
+    sudo machinectl shell ${user}@${container_name} \
+        /bin/bash -c "${final_command}"
+else 
+    echo "Would do"
+    echo ""
+    echo "${final_command}"
+fi
+
