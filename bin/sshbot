@@ -5,4 +5,10 @@ if [ -z $1 ]; then
     exit 1
 fi
 
-ssh swarmbot@v-$1.swarmfarm.com
+if drill $1.swarmfarm.com | grep -q "192.168.50.3"; then 
+    name=$1.swarmfarm.com
+else 
+    name=v-$1.swarmfarm.com
+fi
+ 
+TERM=xterm-color ssh swarmbot@$name

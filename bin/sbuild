@@ -36,6 +36,7 @@ function print_help {
     echo "   -e | --env-file {FILE}       an environment file to source before building. This can be a systemd EnvironmentFile or a bash file"
     echo "                                Defaults to ~/.swarmbot_build_env"
     echo "        --no-env                Turns off environment file sourcing"
+    echo "        --no-colour|--no-color  Turns off colouring in catkin - good for shell piping"
     echo ""
     echo " Where to build it"
     echo "   -u | --user {NAME}           the user to run as inside the container. Defaults to the current user" 
@@ -152,7 +153,8 @@ case $key in
     -p|--package)
         if [ -z "$package_name" ]; then
             shift
-            package_name="--pkg $1"
+            package_name="$1"
+            package_arg="--pkg $package_name"
             shift
         else 
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
@@ -160,15 +162,39 @@ case $key in
         fi
         ;;
     -t|--tests)
-        if [ -z "$package_name" ]; then
+        if [ -z "$test_target" ]; then
             shift
-            package_name="--pkg $1"
-            shift
+            # If the next arg is another flag or if we are at end of args
+            if [[ "$1" =~ ^- ]] || [ -z "$2" ]; then
+                test_target="run_tests_"
+            else 
+                test_target="$1"
+                shift
+            fi
         else 
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
         ;;
+    --no-colour|--no-color)
+        if [ -z "$no_colour" ]; then
+            shift
+            no_colour="--no-color"
+        else 
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;    
+    --less)
+        if [ -z "$less_cmd" ]; then
+            shift
+            catkin_suffix=" > /tmp/sbuild.out &"
+            less_cmd="less /tmp/sbuild.out; rm -f /tmp/sbuild.out"
+        else 
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;    
     --dry-run)
         if [ -z "$seen_debug" ]; then
             do_dryrun="true"
@@ -191,6 +217,17 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
+if [ -z "$package_name" ] && [ -n "$test_target" ]; then 
+    if [ "$test_target" == "run_tests_" ]; then 
+        >&2 echo "--tests without an argument must be paired with --package {packagename}"
+        exit 1
+    fi
+fi
+
+if [ "$test_target" == "run_tests_" ]; then
+    test_target="${test_target}${package_name}"
+fi
+
 if [ -z "$source_command" ]; then 
     source_command="if [ -f ${env_file} ]; then source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
 fi
@@ -198,13 +235,23 @@ cd_command="cd swarmbot4/swarmbot_ws"
 set_c_and_cxx_compiler="export CC='ccache gcc'; export CXX='ccache g++'"
 set_ccache_prefix="export CCACHE_PREFIX=distcc"
 set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
-catkin_command="catkin_make ${package_name} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type}"
+catkin_command="catkin_make ${no_colour} ${package_arg} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
 
 final_command="${source_command}; ${cd_command}; ${set_distcc_file}; ${set_c_and_cxx_compiler}; ${set_ccache_prefix}; ${catkin_command}"
 
 if [ -z "$do_dryrun" ]; then 
-    sudo machinectl shell ${user}@${container_name} \
-        /bin/bash -c "${final_command}"
+    if [ -n "$less_cmd" ]; then 
+        sudo machinectl shell ${user}@${container_name} \
+            /bin/bash -c "${final_command}" ${catkin_suffix}
+        catkin_pid=$!
+        
+        $less_cmd
+
+        kill $catkin_pid
+    else 
+        sudo machinectl shell ${user}@${container_name} \
+            /bin/bash -c "${final_command}"
+    fi
 else 
     echo "Would do"
     echo ""

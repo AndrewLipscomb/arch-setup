@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo /usr/bin/chmod a+x /var/lib/machines
