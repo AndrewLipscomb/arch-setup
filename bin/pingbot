@@ -5,4 +5,10 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-ping "v-$1.swarmfarm.com"
+if drill "$1.swarmfarm.com" | grep -qE "IN\s+A\s+192.168.50"; then
+    name="$1.swarmfarm.com"
+else 
+    name="v-$1.swarmfarm.com"
+fi
+
+ping "$name"

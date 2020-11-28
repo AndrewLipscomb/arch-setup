@@ -1,0 +1,46 @@
+[options]
+scrollback_lines = 1000
+font = Monospace 14
+
+[colors]
+# Challenger Deep - https://challenger-deep-theme.github.io/
+
+foreground          = #586e75
+foreground_bold     = #586e75
+cursor              = #586e75
+cursor_foreground   = #1C2023
+background          = #fdf6e3
+
+# 16 color space
+
+# Black, Gray
+color0  = #eee8d5
+color8  = #2aa198
+
+# Red
+color1  = #dc322f
+color9  = #cb4b16
+
+# Green
+color2  = #859900
+color10 = #93a1a1
+
+# Yellow
+color3  = #b58900
+color11 = #839496
+
+# Blue
+color4  = #268bd2
+color12 = #657b83
+
+# Purple
+color5  = #d33682
+color13 = #906cff
+
+# Teal
+color6  = #2aa198
+color14 = #586e75
+
+# Silver, White
+color7  = #073642
+color15 = #002b36

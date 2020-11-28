@@ -1,14 +1,1 @@
-#!/bin/bash
-
-if [ -z $1 ]; then 
-    echo "Needs a robot"
-    exit 1
-fi
-
-if drill $1.swarmfarm.com | grep -q "192.168.50.3"; then 
-    name=$1.swarmfarm.com
-else 
-    name=v-$1.swarmfarm.com
-fi
- 
-TERM=xterm-color ssh swarmbot@$name
+/home/andrew/SystemUtilities/swarmfarm-networking-client-utils/src/swarmfarm-swarmbot-ssh-client

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sshfs Andrew\ Lipscomb@nas01.swarmfarm.com:/ /home/andrew/nas

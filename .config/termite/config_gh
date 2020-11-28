@@ -1,0 +1,46 @@
+[options]
+scrollback_lines = 1000
+font = Monospace 14
+
+[colors]
+# GH scheme - https://github.com/Mayccoll/Gogh
+
+foreground          = #3e3e3e
+foreground_bold     = #3e3e3e
+cursor              = #3e3e3e
+cursor_foreground   = #3e3e3e
+background          = #f4f4f4
+
+# 16 color space
+
+# Black, Gray
+color0  = #3e3e3e
+color8  = #666666
+
+# Red
+color1  = #970b16
+color9  = #de0000
+
+# Green
+color2  = #07962a
+color10 = #87d5a2
+
+# Yellow
+color3  = #f8eec7
+color11 = #f1d007
+
+# Blue
+color4  = #003e8a
+color12 = #2e6cba
+
+# Purple
+color5  = #c991e1 
+color13 = #ffa29f
+
+# Teal
+color6  = #89d1ec
+color14 = #1cfafe
+
+# Silver, White
+color7  = #ffffff
+color15 = #ffffff

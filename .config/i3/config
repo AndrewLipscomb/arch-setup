@@ -37,6 +37,9 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86MonBrightnessUp exec --no-startup-id sudo cbacklight --inc 10
+bindsym XF86MonBrightnessDown exec --no-startup-id sudo cbacklight --dec 10
+
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -48,6 +51,9 @@ bindsym $mod+Return exec termite
 bindsym $mod+Shift+q kill
 bindsym $mod+Shift+KP_Subtract kill
 bindsym $mod+Ctrl+KP_Subtract kill
+bindsym $mod+Ctrl+Delete kill
+
+workspace_layout tabbed
 
 # start dmenu (a program launcher)
 bindsym $mod+d exec dmenu_run
@@ -92,9 +98,11 @@ bindsym $mod+f fullscreen toggle
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+s layout stacking
 bindsym $mod+w layout tabbed
-bindsym $mod+KP_Add layout tabbed 
+bindsym $mod+KP_Add layout tabbed
+bindsym $mod+Insert layout tabbed 
 bindsym $mod+e layout toggle split
 bindsym $mod+KP_Enter layout toggle split
+bindsym $mod+End layout toggle split
 
 
 # toggle tiling / floating
@@ -220,6 +228,10 @@ bindsym $mod+Ctrl+0          exec term-in-workspace $ws10
 bindsym $mod+Ctrl+KP_Insert  exec term-in-workspace $ws10
 bindsym $mod+Ctrl+Mod2+KP_0  exec term-in-workspace $ws10
 
+bindsym $mod+Mod1+Left       exec i3-msg move workspace to output left
+bindsym $mod+Mod1+Right      exec i3-msg move workspace to output right
+
+
 # reload the configuration file
 bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
@@ -254,6 +266,16 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
+mode "moveit" {
+    bindsym Up move up 20px
+    bindsym Left move left 20px
+    bindsym Down move down 20px
+    bindsym Right move right 20px
+    bindsym $mod+m mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+m focus floating; mode "moveit"
+
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
@@ -268,9 +290,11 @@ for_window [class="Chromium"] move --no-auto-back-and-forth to workspace $ws10
 
 exec --no-startup-id i3-msg "exec /usr/bin/termite"
 exec --no-startup-id i3-msg "exec /usr/bin/chromium"
-exec --no-startup-id i3-msg "exec /usr/bin/spotify"
-exec --no-startup-id i3-msg "exec sbcode"
-exec --no-startup-id feh --bg-scale ~/backgrounds/7jZiKGEK6q3pMfQ3Ut35kQ.jpg
+#exec --no-startup-id i3-msg "exec /usr/bin/spotify"
+#exec --no-startup-id i3-msg "exec sbcode"
+#exec --no-startup-id feh --bg-scale ~/backgrounds/7jZiKGEK6q3pMfQ3Ut35kQ.jpg
+exec --no-startup-id feh --bg-scale ~/backgrounds/binding.png
+
 exec --no-startup-id picom -b
 
 bindsym Print exec --no-startup-id take-screenshot
@@ -280,3 +304,38 @@ for_window [class=".*"] border pixel 0
 gaps inner 5
 smart_gaps on
 
+
+
+# color defines for zenburn styled i3
+set $bg     #999999
+set $fg     #cfcfcf
+set $hi     #efef8f
+set $ac     #a0afa0
+set $tx     #040404
+set $ia     #8f8f8f
+set $be     #8faf9f
+set $yw     #ccdc90
+set $gn     #88b090
+set $rd     #e89393
+
+# set some nice colors      border     background  text
+#client.focused              $ac        $ac         #000000
+#client.unfocused            $bg        $bg         $tx
+#client.focused_inactive     $bg        $bg         $ac
+#client.urgent               $rd        $rd         $tx
+
+# Start i3bar to display a workspace bar (plus the system information i3status
+# finds out, if available)
+#bar {
+#    status_command i3status --config ~/.i3/i3status.conf
+#
+#    colors {
+#        background          $bg
+#        statusline          $fg
+#        separator           $hi
+#        focused_workspace   $gn        $bg        $ac
+#        active_workspace    $gn        $ac        $tx
+#        inactive_workspace  $bg        $bg        $ia
+#        urgent_workspace    $rd        $bg        $ac
+#    }
+#}

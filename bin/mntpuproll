@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mount-remote-drive sf-bb@configmaster.swarmfarm.com /etc/puppetlabs/code/environments/rollout /home/andrew/puppet_roll && code /home/andrew/puppet_roll

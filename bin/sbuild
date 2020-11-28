@@ -11,7 +11,8 @@ env_file="~/.config/swarmfarm/swarmbot_build_env"
 
 default_local_hosts="localhost/4"
 default_dist_cores="16"
-default_dist_hosts=$'localhost/4\n192.168.50.21/6\n192.168.50.22/6'
+#default_dist_hosts=$'localhost/4\n192.168.50.21/6\n192.168.50.22/6'
+default_dist_hosts=$'localhost/4\n192.168.50.21/6'
 
 hosts="$default_local_hosts"
 
@@ -23,26 +24,27 @@ function print_help {
     echo "Arguments"
     echo ""
     echo " What to build"
-    echo "   -p | --package {PACKAGE}     the package to build - appended to catkin_make as '--pkg {PACKAGE}'. Default builds everything"
-    echo "   -t | --tests                 whether to build tests"
+    echo "   -p | --package {PACKAGE}       the package to build - appended to catkin_make as '--pkg {PACKAGE}'. Default builds everything"
+    echo "   -o | --only-package {PACKAGE}  the package to build in isolation. Uses CATKIN_WHITELIST_PACKAGES to skip all deps. Default builds everything"
+    echo "   -t | --tests                   whether to build tests"
     echo "        --debug | --release "
     echo "        --cmake-type {TYPE} "
-    echo "                                the CMAKE_BUILD_TYPE. Defaults to Debug"
+    echo "                                  the CMAKE_BUILD_TYPE. Defaults to Debug"
     echo ""
     echo " How to build it"
-    echo "   -c | --cores {CORES}         the amount of cores to use. Defaults to 4, and ups to 16 automatically if --dist is specified"
-    echo "   -d | --dist                  use a distributed build. This is hardcoded around the Bendee distcc config"
-    echo "   -h | --hosts {HOSTS}         the distcc hosts to use. Defaults to the bendee standard. This argument requires newline seperation ala the hosts config file for distcc"
-    echo "   -e | --env-file {FILE}       an environment file to source before building. This can be a systemd EnvironmentFile or a bash file"
-    echo "                                Defaults to ~/.swarmbot_build_env"
-    echo "        --no-env                Turns off environment file sourcing"
-    echo "        --no-colour|--no-color  Turns off colouring in catkin - good for shell piping"
+    echo "   -c | --cores {CORES}           the amount of cores to use. Defaults to 4, and ups to 16 automatically if --dist is specified"
+    echo "   -d | --dist                    use a distributed build. This is hardcoded around the Bendee distcc config"
+    echo "   -h | --hosts {HOSTS}           the distcc hosts to use. Defaults to the bendee standard. This argument requires newline seperation ala the hosts config file for distcc"
+    echo "   -e | --env-file {FILE}         an environment file to source before building. This can be a systemd EnvironmentFile or a bash file"
+    echo "                                  Defaults to ~/.swarmbot_build_env"
+    echo "        --no-env                  Turns off environment file sourcing"
+    echo "        --no-colour|--no-color    Turns off colouring in catkin - good for shell piping"
     echo ""
     echo " Where to build it"
-    echo "   -u | --user {NAME}           the user to run as inside the container. Defaults to the current user" 
-    echo "   -n | --container-name {NAME} the container to build into. Defaults to swarmbot. Expects no user-namespacing inside the container - use -u if this is not the case" 
-    echo "        --help                  print this help text"
-    echo "        --dry-run               prints extra debugging info to tell what is going wrong"
+    echo "   -u | --user {NAME}             the user to run as inside the container. Defaults to the current user" 
+    echo "   -n | --container-name {NAME}   the container to build into. Defaults to swarmbot. Expects no user-namespacing inside the container - use -u if this is not the case" 
+    echo "        --help                    print this help text"
+    echo "        --dry-run                 prints extra debugging info to tell what is going wrong"
 }
 
 
@@ -154,13 +156,24 @@ case $key in
         if [ -z "$package_name" ]; then
             shift
             package_name="$1"
-            package_arg="--pkg $package_name"
+            package_arg="--only-pkg-with-deps $package_name"
             shift
         else 
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
         ;;
+    -o|--only-package)
+        if [ -z "$package_name" ]; then
+            shift
+            package_name="$1"
+            package_arg="-DCATKIN_WHITELIST_PACKAGES=$package_name"
+            shift
+        else 
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;        
     -t|--tests)
         if [ -z "$test_target" ]; then
             shift
@@ -235,6 +248,11 @@ cd_command="cd swarmbot4/swarmbot_ws"
 set_c_and_cxx_compiler="export CC='ccache gcc'; export CXX='ccache g++'"
 set_ccache_prefix="export CCACHE_PREFIX=distcc"
 set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
+
+if [ -z "$package_arg" ]; then 
+    package_arg="-DCATKIN_WHITELIST_PACKAGES="""
+fi
+
 catkin_command="catkin_make ${no_colour} ${package_arg} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
 
 final_command="${source_command}; ${cd_command}; ${set_distcc_file}; ${set_c_and_cxx_compiler}; ${set_ccache_prefix}; ${catkin_command}"
