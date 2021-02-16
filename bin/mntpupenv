@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then 
+    >&2 echo "Must specify an arg dingle berry"
+fi
+
+dirname="/home/andrew/puppet_envs/$1"
+
+mkdir -p "$dirname"
+
+mount-remote-drive andrew.lipscomb@monash.swarmfarm.com "/etc/puppetlabs/code/environments/$1" "$dirname" && code "$dirname"

@@ -293,7 +293,8 @@ exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 #exec --no-startup-id i3-msg "exec /usr/bin/spotify"
 #exec --no-startup-id i3-msg "exec sbcode"
 #exec --no-startup-id feh --bg-scale ~/backgrounds/7jZiKGEK6q3pMfQ3Ut35kQ.jpg
-exec --no-startup-id feh --bg-scale ~/backgrounds/binding.png
+#exec --no-startup-id feh --bg-scale ~/backgrounds/binding.png
+exec --no-startup-id feh --bg-scale ~/backgrounds/pew3faxv4xp51.jpg
 
 exec --no-startup-id picom -b
 
@@ -319,10 +320,10 @@ set $gn     #88b090
 set $rd     #e89393
 
 # set some nice colors      border     background  text
-#client.focused              $ac        $ac         #000000
-#client.unfocused            $bg        $bg         $tx
-#client.focused_inactive     $bg        $bg         $ac
-#client.urgent               $rd        $rd         $tx
+client.focused              $ac        $ac         #000000
+client.unfocused            $bg        $bg         $tx
+client.focused_inactive     $bg        $bg         $ac
+client.urgent               $rd        $rd         $tx
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
