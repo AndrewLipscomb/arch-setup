@@ -1,0 +1,8 @@
+#!/bin/bash
+
+args="roslaunch simulation headless_simulation.launch $@"
+
+sudo machinectl shell andrew@swarmbot \
+    /bin/bash -c "source ~/.config/swarmfarm/swarmbot_build_env; \
+    rosparam load /etc/swarmfarm/swarmbot/config/machine_specific.yaml; \
+    $args"

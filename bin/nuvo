@@ -1,0 +1,128 @@
+#!/bin/bash
+
+script_name="$(basename "$0")"
+
+function print_help {
+    echo "Start, run, stop and spawn shell's into a Focal Nuvo nspawn setup"
+    echo ""
+    echo "Usage:"
+    echo "   $script_name [options] [machine_type] [command]"
+    echo ""
+    echo "  [machine_type] is the nspawn identifier to use"
+    echo "  [command] is the command to run. It must be the last argument"
+    echo ""
+    echo "Machine type arguments:"
+    echo "   -m, master | -s, slave            Operates on the master or slave machine respectively"
+    echo ""
+    echo "Command"
+    echo "   start                     Starts the nspawn machine"
+    echo "   stop                      Stops the machine"
+    echo "   sh                        Spawns a shell into the machine"
+    echo ""
+    echo "Other:"
+    echo "       --help                Print this help text"
+    echo "   -v, --verbose             Print some extra output"
+    echo "       --debug               Print lots of extra stuff to see what the script is attempting to do. Automatically sets --verbose"
+    echo ""
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+if [ -n "$command" ]; then
+    >&2 echo "The command must be the last argument"
+    exit 1
+fi
+
+case $key in
+    -m|--master)
+        if [ -z "$machine" ]; then
+            machine="master"
+            shift
+        else
+            >&2 echo "Can't specify the target machine more than once"
+            exit 1
+        fi
+        ;;
+    -s|--slave)
+        if [ -z "$machine" ]; then
+            machine="slave"
+            shift
+        else
+            >&2 echo "Can't specify the target machine more than once"
+            exit 1
+        fi
+        ;;
+    --help)
+        print_help
+        exit 0
+        ;;
+    -v|--verbose)
+        if [ -z "$verbose" ]; then
+            verbose="verbose"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --debug)
+        if [ -z "$debug" ]; then
+            verbose="verbose"
+            debug="debug"
+            if [ -n "$debug" ]; then
+                echo "Printing debug output"
+            fi
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    *)
+        if [ -z "$command" ]; then
+            command="$1"
+            shift
+            if [[ "$command" != "start" ]] && [[ "$command" != "stop" ]] && [[ "$command" != "sh" ]]; then
+                >&2 echo "Unrecognised argument $1"
+                exit 1
+            fi
+        else
+            >&2 echo "Unrecognised argument $1"
+            exit 1
+        fi
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [ -z "$command" ]; then
+    >&2 echo "A command must be defined"
+    exit 1
+fi
+
+if [ -z "$machine" ]; then
+    >&2 echo "A machine must be defined"
+    exit 1
+fi
+
+if [[ "$machine" != "master" ]] && [[ "$machine" != "slave" ]]; then
+    >&2 echo "The machine must be either master or slave"
+    exit 1
+fi
+
+machine_name="focal-nuvo-${machine}"
+
+if [[ "$command" == "start" ]] || [[ "$command" == "stop" ]]; then
+    sudo machinectl "$command" "$machine_name"
+    exit $?
+elif [[ "$command" == "sh" ]]; then
+    sudo machinectl shell "root@${machine_name}" /bin/bash
+    exit $?
+else
+    >&2 echo "Assertion failure; unhandled command type - command was $command"
+    exit 1
+fi
+

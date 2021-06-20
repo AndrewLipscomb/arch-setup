@@ -1,0 +1,9 @@
+[Unit]
+Description=Download my personal certificate
+
+[Service]
+ExecStart=/bin/bash -c "\
+    /usr/bin/aws s3 cp s3://swarmfarm-certificates/andrew.lipscomb.key /etc/swarmfarm/certs/andrew_swarmfarm_com.key \
+    && /usr/bin/aws s3 cp s3://swarmfarm-certificates/andrew.lipscomb.pem /etc/swarmfarm/certs/andrew_swarmfarm_com.pem \
+    "
+Type=oneshot

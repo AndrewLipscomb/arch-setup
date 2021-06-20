@@ -1,0 +1,345 @@
+#!/bin/bash
+
+script_name=$(basename "$0")
+
+default_host=localhost
+default_user=root
+default_key_file="$HOME/.ssh/swarmfarm-deployment-key"
+ssh_options=()
+default_environment='production'
+
+if [[ $EUID -eq 0 ]]; then
+    >&2 echo "$script_name is not supposed to be run as root. Run as your regular user"
+    exit 1
+fi
+
+function print_help {
+    echo "Bootstrap script for servers to set up a machine. Should really only be invoked via swarmfarm-bootstrap-client"
+    echo ""
+    echo "Usage:"
+    echo "   $script_name [arguments]"
+    echo ""
+    echo "Connection type arguments:"
+    echo "   -h, --host  <host>        Use a specific host for the upstream connection. By default - it will use $default_host"
+    echo "   -u, --user  <user>        SSH as this user. Defaults to ${default_user}"
+    echo "       --key   <path>        Path to the key to use for SSH. Defaults to ${default_key_file}"
+    echo ""
+    echo "Bootstrap target options"
+    echo "   -p, --port <port>         The port to use for tunnel proxying when on the intermediate server. Required argument. Get the target port from Slack"
+    echo "   -c, --certname <name>     The name to use for certificate rolling. For production use - this should be the SDD serial number, which will be on Slack"
+    echo "       --environment <name>  The Puppet environment to use. If not specified will default to $default_environment"
+    echo "   -s, --stage <one|two>     Which stage to run"
+    echo "                              - Stage 1 bootstraps ZT and creates a more durable tunnel for when networking changes"
+    echo "                              - Stage 2 should run over this new tunnel and performs the final Puppet update"
+    echo ""
+    echo "Stage options"
+    echo "Stages are"
+    echo "  - cert generation, where certificates for the target disk are generated"
+    echo "  - cert deployment, where certificates are pulled from online storage, and deployed to the target machine via SSH"
+    echo""
+    echo "       --skip-generation     Skip the local certificate generation stage"
+    echo "       --skip-deployment     Skip the remote cert deployment stage"
+    echo "Other:"
+    echo "       --help                Print this help text"
+    echo "   -v, --verbose             Print some extra output"
+    echo "       --debug               Print lots of extra stuff to see what the script is attempting to do. Automatically sets --verbose"
+    echo ""
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]] #true for number of args more than 0
+do
+key="$1" # assigns the first arg to key
+
+case $key in
+    -h|--host)
+        if [ -z "$host" ]; then
+            shift
+            host="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -u|--user)
+        if [ -z "$user" ]; then
+            shift
+            user="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --key)
+        if [ -z "$key_file" ]; then
+            shift
+            key_file="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -p|--port)
+        if [ -z "$port" ]; then
+            shift
+            port="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -c|--certname)
+        if [ -z "$certname" ]; then
+            shift
+            certname="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --environment)
+        if [ -z "$environment" ]; then
+            shift
+            environment="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -s|--stage)
+        if [ -z "$stage" ]; then
+            shift
+            stage="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --skip-generation)
+        if [ -z "$skip_generation" ]; then
+            shift
+            skip_generation="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --skip-deployment)
+        if [ -z "$skip_deployment" ]; then
+            shift
+            skip_deployment="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --help)
+        print_help
+        exit 0
+        ;;
+    -v|--verbose)
+        if [ -z "$verbose" ]; then
+            verbose="verbose"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --debug)
+        if [ -z "$debug" ]; then
+            verbose="verbose"
+            debug="debug"
+            if [ -n "$debug" ]; then
+                echo "Printing debug output"
+            fi
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    *)
+        >&2 echo "Unrecognised option $1"
+        exit 1
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [ -z "$host" ]; then
+    host="$default_host"
+fi
+
+if [ -z "$user" ]; then
+    user="$default_user"
+fi
+
+if [ -z "$key_file" ]; then
+    key_file="$default_key_file"
+fi
+
+if [ -z "$environment" ]; then
+    environment=$default_environment
+fi
+
+if [ -z "$stage" ]; then
+    >&2 echo "Stage cannot be undefined"
+    exit 1
+fi
+
+if [ "$stage" != "one" ] && [ "$stage" != "two" ]; then
+    >&2 echo "Stage must be either one or two"
+    exit 1
+fi
+
+if [ ! -f "$key_file" ]; then
+    >&2 echo "$key_file does not appear to point to a usable SSH key. Are you correctly authorised for deployment?"
+    exit 1
+fi
+
+ssh_options=(-i "$key_file" "${ssh_options[@]}")
+
+user="$user@"
+
+if [ -z "$HOME" ]; then
+    >&2 echo "Home directory does not seem to exist in this shell...?"
+    exit 1
+fi
+
+if [ -z "$port" ]; then
+    >&2 echo "Port is required - see $script_name --help"
+    exit 1
+fi
+
+# SCP uses -p for something else
+scp_options=(-P "$port" "${ssh_options[@]}")
+ssh_options=(-p "$port" "${ssh_options[@]}")
+
+if [ -z "$certname" ]; then
+    >&2 echo "Certificate name is required - see $script_name --help"
+    exit 1
+fi
+
+if ! which aws > /dev/null; then
+    >&2 echo "Couldn't find aws in the path - path is $PATH"
+    >&2 echo "You may need to install the aws-cli package on Focal"
+    exit 1
+fi
+
+# Check we can do AWS ops
+if ! aws s3 ls s3://swarmfarm-disk-certs > /dev/null; then
+    >&2 echo "Failed to perform test read-only operation on s3://swarmfarm-disk-certs. You may be lacking permissions"
+    >&2 echo "Or you may not have your AWS permissions set up on the server ( $(hostname) )"
+    >&2 echo "Contact Lippy or Angus or another sysadmin for help"
+    exit 1
+fi
+
+copy_dir="$HOME/.swarmfarm/disk_setup_${certname}"
+mkdir -p "$copy_dir"
+function cleanup() {
+    rm -rf "$copy_dir"
+}
+
+trap cleanup EXIT
+
+# We want to allow these to fail and check explicitly with a proper error msg if they are wrong
+set +e
+
+if ! ssh "${ssh_options[@]}" "$user$host" /bin/true; then
+    >&2 echo "Doesn't look like we could perform an SSH into the machine. Maybe some output above can help."
+    >&2 echo "We attempted   ssh " "${ssh_options[@]}" " $user$host /bin/true"
+    exit 1
+fi
+
+# Validate that the disk mounts are correct
+if ! disk_id_output=$(ssh "${ssh_options[@]}" "$user$host" "/bin/bash -c 'udevadm info --query=all --name /dev/sda'"); then
+    >&2 echo "Doesn't look like we could get the disk ID from the targeted device"
+    exit 1
+fi
+
+if ! disk_id="$(echo "$disk_id_output" | grep ID_SERIAL_SHORT | sed -E 's/.+=([A-Z0-9])/\1/g' | tr '[:upper:]' '[:lower:]')"; then
+    >&2 echo "Doesn't look like we can extract the ID_SERIAL_SHORT tag from udevadm output"
+    exit 1
+fi
+
+if [ "$disk_id" != "$certname" ]; then
+    >&2 echo "Doesn't look like the config matches the targeted disk - disk ID is ${disk_id}, certname is ${certname}"
+    exit 1
+fi
+
+# Validate that the disk mounts are correct
+if ! ssh "${ssh_options[@]}" "$user$host" "/bin/bash -c 'mount | grep \"/dev/sda6 on / type btrfs (rw\"'"; then
+    >&2 echo "Doesn't look like the OS mount is correct"
+    exit 1
+fi
+
+# Copy AWS files
+set -e
+
+if [ "$stage" == "one" ]; then
+    aws s3 cp "s3://swarmfarm-disk-certs/${certname}-zt.secret" "${copy_dir}/${certname}.secret"
+    aws s3 cp "s3://swarmfarm-disk-certs/${certname}-zt.public" "${copy_dir}/${certname}.public"
+    aws s3 cp "s3://swarmfarm-disk-certs/${certname}-puppet-private.pem" "${copy_dir}/private_keys/${certname}.pem"
+    aws s3 cp "s3://swarmfarm-disk-certs/${certname}-puppet-public.pem" "${copy_dir}/certs/${certname}.pem"
+
+    ssh "${ssh_options[@]}" "$user$host" "/bin/bash -c 'mkdir -p /var/lib/zerotier-one'"
+    scp "${scp_options[@]}" "${copy_dir}/${certname}.secret" "$user$host:/var/lib/zerotier-one/identity.secret"
+    scp "${scp_options[@]}" "${copy_dir}/${certname}.public" "$user$host:/var/lib/zerotier-one/identity.public"
+
+    ssh "${ssh_options[@]}" "$user$host" "/bin/bash -c 'mkdir -p /etc/puppetlabs/puppet/ssl/private_keys'"
+    ssh "${ssh_options[@]}" "$user$host" "/bin/bash -c 'mkdir -p /etc/puppetlabs/puppet/ssl/certs'"
+    scp "${scp_options[@]}" "${copy_dir}/private_keys/${certname}.pem" "$user$host:/etc/puppetlabs/puppet/ssl/private_keys/${certname}.pem"
+    scp "${scp_options[@]}" "${copy_dir}/certs/${certname}.pem" "$user$host:/etc/puppetlabs/puppet/ssl/certs/${certname}.pem"
+
+    echo "Copied all files"
+
+    scp "${scp_options[@]}" /var/lib/swarmfarm/swarmfarm-onboard-bootstrapper-stage-1 $user$host:/tmp/swarmfarm-onboard-bootstrapper-stage-1
+    ssh "${ssh_options[@]}" "$user$host" "/tmp/swarmfarm-onboard-bootstrapper-stage-1"
+
+    echo "Stage 1 setup completed. Watch Slack's bootstrappers channel for a new tunnel via the VPN to run Stage 2 on"
+
+elif [ "$stage" == "two" ]; then
+
+    set +e
+    current_running_sessions="$(ssh "${ssh_options[@]}" "$user$host" "/usr/bin/systemctl list-units | grep -E swarmfarm-initial-bootstrap-stage-2")"
+    set -e
+
+    echo "$current_running_sessions"
+
+    OLDIFS=$IFS
+    IFS=$'\n'
+
+    for session in $current_running_sessions; do
+        if echo "$session" | grep -q -E -e "loaded active running"; then
+            journal_to_follow="$(echo "$session" | grep -E -e 'loaded active running' | grep -o -E -e 'swarmfarm-initial-bootstrap-stage-2-[0-9]+')"
+            echo "An extant session appears to be running - attaching to journal for ${journal_to_follow}"
+            IFS=$OLDIFS
+            ssh "${ssh_options[@]}" "$user$host" "/usr/bin/journalctl -u ${journal_to_follow} -f"
+            exit $?
+        fi
+    done
+
+    IFS=$OLDIFS
+
+    date_str="$(date +%s)"
+
+    scp "${scp_options[@]}" /var/lib/swarmfarm/swarmfarm-onboard-bootstrapper-stage-2 "$user$host:/tmp/swarmfarm-onboard-bootstrapper-stage-2"
+    ssh "${ssh_options[@]}" "$user$host" "/usr/bin/systemd-run -u swarmfarm-initial-bootstrap-stage-2-${date_str} -p SuccessExitStatus=2 /tmp/swarmfarm-onboard-bootstrapper-stage-2 $environment"
+    ssh "${ssh_options[@]}" "$user$host" "/usr/bin/journalctl -u swarmfarm-initial-bootstrap-stage-2-${date_str} -f"
+
+    echo "Ran bootstrapper to completion"
+
+else
+    >&2 echo "Somehow got a stage which wasn't 'one' or 'two'"
+    exit 1
+fi

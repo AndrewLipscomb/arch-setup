@@ -1,0 +1,15 @@
+#!/bin/bash
+
+update_array() {
+    local -n arr=$1             # use nameref for indirection
+    arr[wingle]="dingug"
+    #arr+=("two three" four)     # update the array
+}
+
+use_array() {
+    update_array my_array       # call function to update the array
+}
+
+declare -A my_array
+update_array my_array
+declare -p my_array

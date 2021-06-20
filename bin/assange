@@ -1,0 +1,3 @@
+#/bin/bash 
+
+ssh andrew.lipscomb@assange.swarmfarm.com

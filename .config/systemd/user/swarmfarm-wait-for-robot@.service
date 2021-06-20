@@ -1,0 +1,5 @@
+[Unit]
+Description=Waits for robot to come on
+
+[Service]
+ExecStart=/home/andrew/bin/swarmfarm-wait-for-robot %i

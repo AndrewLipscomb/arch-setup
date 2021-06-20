@@ -1,0 +1,17 @@
+#!/bin/bash
+
+sudo pacman -U /home/andrew/ruby_backup/puppet-6.21.1-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/rubygems-3.2.7-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-reline-0.2.2-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-irb-1.3.0-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-2.7.2-1-x86_64.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-semantic_puppet-1.0.3-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-augeas-0.5.0-4-x86_64.pkg.tar.xz \
+  /home/andrew/ruby_backup/ruby-shadow-2.5.0-5-x86_64.pkg.tar.xz \
+  /home/andrew/ruby_backup/ruby-concurrent-1.1.8-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-multi_json-1.15.0-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-hocon-1.3.1-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-puppet-resource_api-1.8.13-1-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-httpclient-2.8.3-7-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-deep_merge-1.2.1-2-any.pkg.tar.zst \
+  /home/andrew/ruby_backup/ruby-sync-0.5.0-3-any.pkg.tar.zst

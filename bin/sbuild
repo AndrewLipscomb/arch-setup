@@ -3,7 +3,7 @@
 set -e
 
 script_name=`basename "$0"`
-container_name="swarmbot"
+container_name="dev-focal"
 cores="6"
 cmake_type="Debug"
 user="$(id --user --name)"
@@ -43,8 +43,9 @@ function print_help {
     echo "        --no-colour|--no-color    Turns off colouring in catkin - good for shell piping"
     echo ""
     echo " Where to build it"
-    echo "   -u | --user {NAME}             the user to run as inside the container. Defaults to the current user" 
-    echo "   -n | --container-name {NAME}   the container to build into. Defaults to swarmbot. Expects no user-namespacing inside the container - use -u if this is not the case" 
+    echo "   -u | --user {NAME}             the user to run as inside the container. Defaults to the current user"
+    echo "   -n | --container-name {NAME}   the container to build into. Defaults to ${container_name}. Expects no user-namespacing inside the container - use -u if this is not the case"
+	echo "        --gcc {VERSION}           GCC version to use"
     echo "        --help                    print this help text"
     echo "        --dry-run                 prints extra debugging info to tell what is going wrong"
 }
@@ -93,14 +94,14 @@ case $key in
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;     
+        ;;
     --debug|--release|--cmake-type)
         if [ -z "$seen_type" ]; then
-            if [[ "$1" == "--debug" ]]; then 
+            if [[ "$1" == "--debug" ]]; then
                 cmake_type="Debug"
             elif [[ "$1" == "--release" ]]; then
                 cmake_type="Release"
-            else 
+            else
                 shift
                 cmake_type="$1"
             fi
@@ -110,7 +111,7 @@ case $key in
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;   
+        ;;
     -h|--hosts)
         if [ -z "$seen_hosts" ]; then
             shift
@@ -121,7 +122,7 @@ case $key in
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;    
+        ;;
     -u|--user)
         if [ -z "$seen_user" ]; then
             shift
@@ -132,7 +133,17 @@ case $key in
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;  
+        ;;
+	--gcc)
+		if [ -z "$gcc" ]; then
+            shift
+            gcc="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
     -e|--env-file)
         if [ -z "$seen_env" ]; then
             shift
@@ -143,7 +154,7 @@ case $key in
             >&2 echo "Can't specify $1 more than once or both $1 and --no-env - see $script_name --help"
             exit 1
         fi
-        ;;        
+        ;;
     --no-env)
         if [ -z "$seen_env" ]; then
             source_command="echo 'Not sourcing environment'"
@@ -153,14 +164,14 @@ case $key in
             >&2 echo "Can't specify $1 more than once or both $1 and --env-file - see $script_name --help"
             exit 1
         fi
-        ;;                
+        ;;
     -p|--package)
         if [ -z "$package_name" ]; then
             shift
             package_name="$1"
             package_arg="--only-pkg-with-deps $package_name"
             shift
-        else 
+        else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
@@ -177,24 +188,24 @@ case $key in
             else
                 package_name="$1"
                 package_arg="-DCATKIN_WHITELIST_PACKAGES=$package_name"
-            fi 
+            fi
             shift
-        else 
+        else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;    
+        ;;
     -t|--tests)
         if [ -z "$test_target" ]; then
             shift
             # If the next arg is another flag or if we are at end of args
             if [[ "$1" =~ ^- ]] || [ -z "$2" ]; then
                 test_target="run_tests_"
-            else 
+            else
                 test_target="$1"
                 shift
             fi
-        else 
+        else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
@@ -203,21 +214,21 @@ case $key in
         if [ -z "$no_colour" ]; then
             shift
             no_colour="--no-color"
-        else 
+        else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;    
+        ;;
     --less)
         if [ -z "$less_cmd" ]; then
             shift
             catkin_suffix=" > /tmp/sbuild.out &"
             less_cmd="less /tmp/sbuild.out; rm -f /tmp/sbuild.out"
-        else 
+        else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;    
+        ;;
     --dry-run)
         if [ -z "$seen_debug" ]; then
             do_dryrun="true"
@@ -227,7 +238,7 @@ case $key in
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
             exit 1
         fi
-        ;;                                        
+        ;;
     --help)
         print_help
         exit 0
@@ -240,40 +251,44 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [ -z "$package_name" ] && [ -n "$test_target" ]; then 
-    if [ "$test_target" == "run_tests_" ]; then 
+if [ -z "$package_name" ] && [ -n "$test_target" ]; then
+    if [ "$test_target" == "run_tests_" ]; then
         >&2 echo "--tests without an argument must be paired with --package {packagename}"
         exit 1
     fi
+fi
+
+if [ -z "$gcc" ]; then
+	gcc=10
 fi
 
 if [ "$test_target" == "run_tests_" ]; then
     test_target="${test_target}${package_name}"
 fi
 
-if [ -z "$source_command" ]; then 
-    source_command="if [ -f ${env_file} ]; then source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
+if [ -z "$source_command" ]; then
+    source_command="if [ -f ${env_file} ]; then echo Sourcing ${env_file}; source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
 fi
 cd_command="cd swarmbot4/swarmbot_ws"
-set_c_and_cxx_compiler="export CC='ccache gcc'; export CXX='ccache g++'"
+set_c_and_cxx_compiler="export CC='ccache gcc-${gcc}'; export CXX='ccache g++-${gcc}'"
 set_ccache_prefix="export CCACHE_PREFIX=distcc"
 set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
 
-if [ -z "$package_arg" ]; then 
+if [ -z "$package_arg" ]; then
     package_arg="-DCATKIN_WHITELIST_PACKAGES="""
 fi
 
 catkin_command="catkin_make ${no_colour} ${package_arg} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
 
-if [ -n "$file_name" ]; then 
-    file_src="$HOME/swarmbot4/swarmbot_ws/src/${package_name}/src/${file_name}" 
+if [ -n "$file_name" ]; then
+    file_src="$HOME/swarmbot4/swarmbot_ws/src/${package_name}/src/${file_name}"
     file_any="$HOME/swarmbot4/swarmbot_ws/src/${package_name}/${file_name}"
 
     if [ -f $file_src ]; then
         catkin_command="make -f build/${package_name}/Makefile src/${file_name}.o"
     elif [ -f $file_any ]; then
         catkin_command="make -f build/${package_name}/Makefile ${file_name}.o"
-    else 
+    else
         >&2 echo "Can't find file with path ${file_src} or ${file_any}"
         exit 1
     fi
@@ -282,20 +297,20 @@ fi
 final_command="${source_command}; ${cd_command}; ${set_distcc_file}; ${set_c_and_cxx_compiler}; ${set_ccache_prefix}; ${catkin_command}"
 
 
-if [ -z "$do_dryrun" ]; then 
-    if [ -n "$less_cmd" ]; then 
+if [ -z "$do_dryrun" ]; then
+    if [ -n "$less_cmd" ]; then
         sudo machinectl shell ${user}@${container_name} \
             /bin/bash -c "${final_command}" ${catkin_suffix}
         catkin_pid=$!
-        
+
         $less_cmd
 
         kill $catkin_pid
-    else 
+    else
         sudo machinectl shell ${user}@${container_name} \
             /bin/bash -c "${final_command}"
     fi
-else 
+else
     echo "Would do"
     echo ""
     echo "${final_command}"

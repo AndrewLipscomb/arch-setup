@@ -1,6 +1,0 @@
-[Unit]
-Description=Make new wildcard and push to AWS
-
-[Service]
-ExecStart=/bin/bash -c "~/swarmfarm-ca-acme/make_production_cert.bash wildcard"
-Type=oneshot

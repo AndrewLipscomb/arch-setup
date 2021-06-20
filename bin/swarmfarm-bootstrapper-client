@@ -1,0 +1,319 @@
+#!/bin/bash
+
+script_name=$(basename "$0")
+
+if [[ $EUID -eq 0 ]]; then
+    >&2 echo "$script_name is not supposed to be run as root. Run as your regular user"
+    exit 1
+fi
+
+default_host='woodward.swarmfarm.com'
+default_environment='production'
+
+function print_help {
+    echo "Bootstrap script for clients to set up a machine"
+    echo ""
+    echo "Usage:"
+    echo "   $script_name [arguments]"
+    echo ""
+    echo "Connection type arguments:"
+    echo "   -h, --host  <host>        Use a specific host for the upstream connection. By default - it will use $default_host"
+    echo "   -u, --user  <user>        SSH as this user. Defaults to your current user"
+    echo ""
+    echo "Bootstrap target options"
+    echo "   -p, --port <port>         The port to use for tunnel proxying when on the intermediate server. Required argument. Get the target port from Slack"
+    echo "   -c, --certname <name>     The name to use for certificate rolling. For production use - this should be the SDD serial number, which will be on Slack"
+    echo "       --environment <name>  The Puppet environment to use. If not specified will default to $default_environment"
+    echo "       --forward-user        If set, the --user argument will be forwarded to the swarmfarm-bootstrapper-server command"
+    echo ""
+    echo "Stage options"
+    echo "Stages are"
+    echo "  - cert generation, where certificates for the target disk are generated"
+    echo "  - cert deployment, where certificates are pulled from online storage, and deployed to the target machine via SSH"
+    echo""
+    echo "       --skip-generation     Skip the local certificate generation stage"
+    echo "       --skip-deployment     Skip the remote cert deployment stage"
+    echo "Other:"
+    echo "       --help                Print this help text"
+    echo "   -v, --verbose             Print some extra output"
+    echo "       --debug               Print lots of extra stuff to see what the script is attempting to do. Automatically sets --verbose"
+    echo ""
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]] #true for number of args more than 0
+do
+key="$1" # assigns the first arg to key
+
+case $key in
+    -h|--host)
+        if [ -z "$host" ]; then
+            shift
+            host="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -u|--user)
+        if [ -z "$user" ]; then
+            shift
+            user="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -p|--port)
+        if [ -z "$port" ]; then
+            shift
+            port="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -c|--certname)
+        if [ -z "$certname" ]; then
+            shift
+            certname="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --environment)
+        if [ -z "$environment" ]; then
+            shift
+            environment="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    -s|--stage)
+        if [ -z "$stage" ]; then
+            shift
+            stage="$1"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --skip-generation)
+        if [ -z "$skip_generation" ]; then
+            skip_generation="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --skip-deployment)
+        if [ -z "$skip_deployment" ]; then
+            skip_deployment="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --forward-user)
+        if [ -z "$forward_user" ]; then
+            forward_user="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --help)
+        print_help
+        exit 0
+        ;;
+    -v|--verbose)
+        if [ -z "$verbose" ]; then
+            verbose="verbose"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --debug)
+        if [ -z "$debug" ]; then
+            verbose="verbose"
+            debug="debug"
+            if [ -n "$debug" ]; then
+                echo "Printing debug output"
+            fi
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    *)
+        >&2 echo "Unrecognised option $1"
+        exit 1
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [ -z "$host" ]; then
+    host=$default_host
+fi
+
+if [ -z "$environment" ]; then
+    environment=$default_environment
+fi
+
+if [ -z "$port" ]; then
+    >&2 echo "Port is required - see $script_name --help"
+    exit 1
+fi
+
+if [ -z "$certname" ]; then
+    >&2 echo "Certificate name is required - see $script_name --help"
+    exit 1
+fi
+
+if [ -z "$stage" ]; then
+    >&2 echo "Stage cannot be undefined"
+    exit 1
+fi
+
+if [ "$stage" != "one" ] && [ "$stage" != "two" ]; then
+    >&2 echo "Stage must be either one or two"
+    exit 1
+fi
+
+if [ -n "$forward_user" ] && [ -z "$user" ]; then
+    >&2 echo "--forward-user must be used with the --user argument set"
+    exit 1
+fi
+
+if ! which aws > /dev/null; then
+    >&2 echo "Couldn't find aws in the path - path is $PATH"
+    >&2 echo "You may need to install the awscli package on Focal"
+    exit 1
+fi
+
+if ! aws s3 ls s3://swarmfarm-disk-certs > /dev/null; then
+    >&2 echo "Failed to perform test read-only operation on s3://swarmfarm-disk-certs. You may be lacking permissions"
+    >&2 echo "Contact Lippy or Angus or another sysadmin for help"
+    exit 1
+fi
+
+if [[ "$certname" =~ ^[0-9A-Za-z-]+$ ]]; then
+    if [ -n "$debug" ]; then
+        echo "$certname matches regex ^[0-9A-Za-z-]+\$"
+    fi
+else
+    >&2 echo "$certname does not match regex '^[0-9A-Za-z-]+\$' - if this is a legitimate disk then tell Lippy/sysadmins that our convention is broken"
+    exit 1
+fi
+
+set -e
+
+if [ -z "$skip_generation" ] && [ "$stage" != "two" ]; then
+    set +e
+    aws_ls_output="$(aws s3 ls s3://swarmfarm-disk-certs/"${certname}")"
+    if echo "$aws_ls_output" | grep -q -e "$certname"; then
+        >&2 echo "There appears to be some certificates already in S3 with this disk name. Either remove those certs if they need to be rerolled, or use --skip-generation to go straight to deployment"
+        exit 1
+    fi
+
+    # Test our preconditions. We need
+    # Puppet to exist so we can roll a Puppet cert
+    # ZT to exist so we can roll a ZT ID
+    # AWS s3 to exist and be writable
+
+    if ! which puppet > /dev/null; then
+        >&2 echo "Couldn't find puppet in the path - path is $PATH"
+        >&2 echo "You may need to add /opt/puppetlabs/bin to your standard shell path"
+        exit 1
+    fi
+
+    if ! which zerotier-idtool > /dev/null; then
+        >&2 echo "Couldn't find zerotier-idtool in the path - path is $PATH"
+        >&2 echo "You may need to add /var/lib/zerotier-one to your standard shell path"
+        exit 1
+    fi
+
+    if [ -f /etc/swarmfarm/zerotier/token ]; then
+        ZT_TOKEN="$(cat /etc/swarmfarm/zerotier/token)"
+    else
+        >&2 echo "It doesn't appear you have a ZT API token. Talk to Lippy about this"
+        exit 1
+    fi
+
+    if ! curl --fail -H "Authorization: Bearer ${ZT_TOKEN}" https://my.zerotier.com/api/network/1c33c1ced0477420 > /dev/null 2>&1; then
+        >&2 echo "It doesn't appear you have a valid functional ZT API token. Talk to Lippy about this"
+        exit 1
+    fi
+
+    # Check we can do AWS ops
+    touch /tmp/aws-testing-file
+    if ! aws s3 mv /tmp/aws-testing-file s3://swarmfarm-disk-certs/testingfile > /dev/null; then
+        >&2 echo "Failed to perform test operation on s3://swarmfarm-disk-certs. You may be lacking permissions"
+        >&2 echo "Contact Lippy or Angus or another sysadmin for help"
+        exit 1
+    fi
+    # And clean up the mess
+    aws s3 rm s3://swarmfarm-disk-certs/testingfile > /dev/null
+
+    function notify_on_exit() {
+        >&2 echo "***********************************"
+        >&2 echo "Certificate generation failed partway through"
+        >&2 echo "You will need to manually clean any partially created certificates from ZT and Puppet - then try the process again"
+        >&2 echo "See Lippy for assistance with this - post output in Slack before asking"
+        >&2 echo "***********************************"
+    }
+
+    trap cleanup EXIT
+
+    set -e
+    echo "Creating ZeroTier ID"
+    zerotier-idtool generate "/tmp/${certname}.secret" "/tmp/${certname}.public"
+
+    zt_member="$(cut -d : -f 1 "/tmp/${certname}.secret")"
+
+    if [ -z "$zt_member" ]; then
+        >&2 echo "Somehow the ZT cert has no node name ... ?"
+        exit 1
+    fi
+
+    curl -X POST -H "Authorization: Bearer ${ZT_TOKEN}" "https://my.zerotier.com/api/network/1c33c1ced0477420/member/${zt_member}" \
+        -d "{\"name\": \"${certname}\", \"config\": { \"authorized\": true } }"
+
+    aws s3 cp "/tmp/${certname}.secret" "s3://swarmfarm-disk-certs/${certname}-zt.secret"
+    aws s3 cp "/tmp/${certname}.public" "s3://swarmfarm-disk-certs/${certname}-zt.public"
+
+    echo "Creating Puppet Certificates - someone will need to sign the certificate on the configmaster"
+    puppet ssl bootstrap --server configmaster.swarmfarm.com --certname "${certname}" --waitforcert 15
+
+    aws s3 cp "$HOME/.puppetlabs/etc/puppet/ssl/private_keys/${certname}.pem" "s3://swarmfarm-disk-certs/${certname}-puppet-private.pem"
+    aws s3 cp "$HOME/.puppetlabs/etc/puppet/ssl/certs/${certname}.pem" "s3://swarmfarm-disk-certs/${certname}-puppet-public.pem"
+
+    rm -f "/tmp/${certname}.secret" "/tmp/${certname}.public"
+    rm -f "$HOME/.puppetlabs/etc/puppet/ssl/private_keys/${certname}.pem" "$HOME/.puppetlabs/etc/puppet/ssl/certs/${certname}.pem"
+
+    trap - EXIT
+fi
+
+if [ -z "$skip_deployment" ]; then
+    if [ -n "$forward_user" ]; then
+        user_forward=(--user "$user" --key "\$HOME/.ssh/id_ed25519")
+        echo "${user_forward[@]}"
+    fi
+    set -e
+    ssh -t "${user}@${host}" swarmfarm-bootstrapper-server -p "${port}" -c "${certname}" --environment "${environment}" --stage "${stage}" "${user_forward[@]}"
+fi
