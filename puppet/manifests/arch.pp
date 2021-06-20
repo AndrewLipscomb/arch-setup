@@ -130,22 +130,80 @@ node default {
     ensure => present
   }
 
-  $password = lookup('andrew_password', String)
+  $username = 'andrew.lipscomb'
 
-  if !$password {
-    fail('Password was not defined or not a string')
+  $home = "/home/${username}"
+  file { "${home}/bin":
+    ensure => 'link',
+    target => 'arch-setup/bin',
+    owner  => $username,
+    group  => $username,
   }
-  $_password = pw_hash($password, 'SHA-512', 'sines8uln33o')
 
-  user { 'andrew':
-    ensure     => present,
-    managehome => true,
-    password   => $_password,
-    groups     => [
-      'systemd-journal',
-      'sudo',
-      'uucp'
-    ],
+  file { "${home}/.nanorc":
+    ensure => 'link',
+    target => 'arch-setup/.nanorc',
+    owner  => $username,
+    group  => $username,
+  }
+  file { "${home}/backgrounds":
+    ensure => 'link',
+    target => 'arch-setup/backgrounds',
+    owner  => $username,
+    group  => $username,
+  }
+  file { "${home}/.xinitrc":
+    ensure => 'link',
+    target => 'arch-setup/.xinitrc',
+    owner  => $username,
+    group  => $username,
+  }
+  file { "${home}/.pam_environment":
+    ensure => 'link',
+    target => 'arch-setup/.pam_environment',
+    owner  => $username,
+    group  => $username,
+  }
+  file { "${home}/.fehbg":
+    ensure => 'link',
+    target => 'arch-setup/.fehbg',
+    owner  => $username,
+    group  => $username,
+  }
+
+  $_config_dir = "${home}/.config"
+  file { $_config_dir:
+    ensure => 'directory',
+  }
+  -> file { "${_config_dir}/systemd":
+    ensure => 'link',
+    target => '../arch-setup/.config/systemd',
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_config_dir}/termite":
+    ensure => 'link',
+    target => '../arch-setup/.config/termite',
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_config_dir}/htop":
+    ensure => 'link',
+    target => '../arch-setup/.config/htop',
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_config_dir}/picom":
+    ensure => 'link',
+    target => '../arch-setup/.config/picom',
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_config_dir}/i3":
+    ensure => 'link',
+    target => '../arch-setup/.config/i3',
+    owner  => $username,
+    group  => $username,
   }
 }
 

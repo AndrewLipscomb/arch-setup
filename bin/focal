@@ -1,6 +1,6 @@
 #!/bin/bash
 
-username=andrew
+username="$(whoami)"
 
 echo "$1"
 
