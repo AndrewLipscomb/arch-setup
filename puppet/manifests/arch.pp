@@ -133,12 +133,6 @@ node default {
   $username = 'andrew.lipscomb'
 
   $home = "/home/${username}"
-  file { "${home}/bin":
-    ensure => 'link',
-    target => 'arch-setup/bin',
-    owner  => $username,
-    group  => $username,
-  }
 
   file { "${home}/.nanorc":
     ensure => 'link',
@@ -205,6 +199,96 @@ node default {
     owner  => $username,
     group  => $username,
   }
+
+  $_bin_dir = "${home}/bin"
+
+
+  file { $_bin_dir:
+    ensure => 'link',
+    target => 'arch-setup/bin',
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/fakeattach":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-lawries-scripts/src/bash/swarmfarm-fake-attachment",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/push-packages":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-apt-tooling/src/swarmfarm-push-packages",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/radio-ssh":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-radio-utils/src/radio-ssh.bash",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/slacksend":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-slack-messenger/src/swarmfarm-slack-messenger",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-bootstrap-disk":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-emergency-tunnel/src/swarmfarm-bootstrap-disk",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-find-radio":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-radio-utils/src/swarmfarm-find-radio.bash",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-radio-ssh-installer":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-radio-utils/src/swarmfarm-radio-ssh-installer.bash",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-rostopic-command":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-ros-utilities/src/swarmfarm-rostopic-command",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-slack-messenger":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-slack-messenger/src/swarmfarm-slack-messenger",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-swarmbot-container-command":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-ros-utilities/src/swarmfarm-swarmbot-container-command",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-teltonika-install-ssh":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-radio-utils/src/teltonika-install-ssh.bash",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-wifi-address":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-radio-utils/src/swarmfarm-wifi-address.bash",
+    owner  => $username,
+    group  => $username,
+  }
+  -> file { "${_bin_dir}/swarmfarm-zt-generator":
+    ensure => 'link',
+    target => "${home}/SystemUtilities/swarmfarm-emergency-tunnel/src/swarmfarm-zt-generator",
+    owner  => $username,
+    group  => $username,
+  }
+
+
 }
 
 

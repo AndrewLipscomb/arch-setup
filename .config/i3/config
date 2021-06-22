@@ -298,6 +298,7 @@ exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 exec --no-startup-id feh --bg-scale ~/backgrounds/pew3faxv4xp51.jpg
 
 exec --no-startup-id picom -b
+exec --no-startup-id i3-msg "exec termite -e check-ssh-on-login"
 
 bindsym Print exec --no-startup-id take-screenshot
 

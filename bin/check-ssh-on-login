@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# set -e
+
+# Only on login shells (SSH)
+if shopt -q login_shell; then
+    echo "Is login shell"
+    do_program=true
+# Or interactive, non login shells (ie: spawned from X)
+elif [[ $- == *i* ]]; then
+    echo "Is not login, but is interactive shell"
+    do_program=true
+fi
+
+if [ -n "$do_program" ]; then
+    while ! systemctl --user is-active ssh-agent; do
+        echo "Waiting for ssh-agent to start"
+        sleep 1
+    done
+
+    while true; do
+        ssh-add -l > /dev/null 2>&1
+        ret_val=$?
+        echo "$ret_val"
+        # We get a 0 on ssh-add -l showing keys, and 1 on it connecting but having no keys. 2 if not connected
+        if [[ $ret_val == 0 ]] || [[ $ret_val == 1 ]]; then
+            break
+        fi
+
+        echo "Waiting for ssh-agent to start"
+        sleep 1
+    done
+
+    search_string="$(whoami | sed s/\\./_/g)"
+    if ! ssh-add -l | grep "$search_string"; then
+        echo "No keys found - waiting for ssh-add"
+        ssh-add
+    fi
+else
+    echo "Not an interactive shell - can't run this"
+fi
