@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e
+
+if [ -z "$1" ]; then 
+    >&2 echo "No username provided dingleberry"
+    exit 1
+fi
+
+elems=(juliet kilo lima mike november oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu\
+   alpha2 bravo2 charlie2 delta2 echo2 foxtrot2 golf2 hotel2 india2 juliet2 kilo2 lima2 mike2 november2 oscar2 papa2 quebec2 romeo2 sierra2 tango2 uniform2 victor2 whiskey2 xray2 yankee2 zulu2)
+
+echo "Adding $1 to all robots in"
+echo "  3"
+sleep 1
+echo "  2"
+sleep 1
+echo "  1"
+sleep 1
+
+for elem in "${elems[@]}"; do
+   echo "Adding to $elem"
+   curl 'https://authentication-db.swarmfarm.com/api/set-permissions' \
+       -H 'Pragma: no-cache' \
+       -H 'Cache-Control: no-cache' \
+       -H 'Content-Type: application/json' \
+       -H 'Accept: */*' \
+       --data-raw "{\"username\":\"$1\",\"robot\":\"$elem\",\"isAllowed\":true}"
+   echo ""
+done

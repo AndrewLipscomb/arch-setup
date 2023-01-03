@@ -2,12 +2,12 @@
 
 set -e
 
-script_name=`basename "$0"`
+script_name=$(basename "$0")
 container_name="dev-focal"
-cores="6"
+cores="4"
 cmake_type="Debug"
 user="$(id --user --name)"
-env_file="~/.config/swarmfarm/swarmbot_build_env"
+env_file="$HOME/.config/swarmfarm/swarmbot_build_env"
 
 default_local_hosts="localhost/4"
 default_dist_cores="16"
@@ -29,6 +29,7 @@ function print_help {
     echo "                                               For packages specify a package name or multiple, with , seperation. Uses CATKIN_WHITELIST_PACKAGES to skip all deps"
     echo "                                               For a single file - do package then filename in src dir with : inbetween. Does not work with other build options"
     echo "   -t | --tests                                whether to build tests"
+    echo "        --install                              Whether to do an install"
     echo "        --debug | --release "
     echo "        --cmake-type {TYPE} "
     echo "                                         the CMAKE_BUILD_TYPE. Defaults to Debug"
@@ -41,6 +42,7 @@ function print_help {
     echo "                                  Defaults to ~/.swarmbot_build_env"
     echo "        --no-env                  Turns off environment file sourcing"
     echo "        --no-colour|--no-color    Turns off colouring in catkin - good for shell piping"
+    echo "        --verbose                 With extra output from the builder"
     echo ""
     echo " Where to build it"
     echo "   -u | --user {NAME}             the user to run as inside the container. Defaults to the current user"
@@ -106,6 +108,15 @@ case $key in
                 cmake_type="$1"
             fi
             seen_type="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    --install)
+        if [ -z "$install" ]; then
+            install="install"
             shift
         else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
@@ -199,7 +210,7 @@ case $key in
         if [ -z "$test_target" ]; then
             shift
             # If the next arg is another flag or if we are at end of args
-            if [[ "$1" =~ ^- ]] || [ -z "$2" ]; then
+            if [[ "$1" =~ ^- ]] || [ -z "$1" ]; then
                 test_target="run_tests_"
             else
                 test_target="$1"
@@ -239,6 +250,15 @@ case $key in
             exit 1
         fi
         ;;
+    --verbose)
+        if [ -z "$verbose" ]; then
+            verbose="true"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
     --help)
         print_help
         exit 0
@@ -269,7 +289,7 @@ fi
 if [ -z "$source_command" ]; then
     source_command="if [ -f ${env_file} ]; then echo Sourcing ${env_file}; source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
 fi
-cd_command="cd swarmbot4/swarmbot_ws"
+cd_command="cd $HOME/swarmbot4/swarmbot_ws"
 set_c_and_cxx_compiler="export CC='ccache gcc-${gcc}'; export CXX='ccache g++-${gcc}'"
 set_ccache_prefix="export CCACHE_PREFIX=distcc"
 set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
@@ -278,16 +298,31 @@ if [ -z "$package_arg" ]; then
     package_arg="-DCATKIN_WHITELIST_PACKAGES="""
 fi
 
-catkin_command="catkin_make ${no_colour} ${package_arg} -j${cores} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
+if [ -n "$verbose" ]; then
+    catkin_verbose="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
+else
+    catkin_verbose="-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF"
+fi
+
+catkin_command="ROS_LANG_DISABLE=genlisp catkin_make ${no_colour} ${package_arg} -j${cores} ${install} ${catkin_verbose} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
 
 if [ -n "$file_name" ]; then
+    if [ -n "$install" ]; then
+        >&2 echo "Can't do a single file build with install"
+        exit 1
+    fi
+
     file_src="$HOME/swarmbot4/swarmbot_ws/src/${package_name}/src/${file_name}"
     file_any="$HOME/swarmbot4/swarmbot_ws/src/${package_name}/${file_name}"
 
+    if [ -n "$verbose" ]; then
+        make_verbose="VERBOSE=1 "
+    fi
+
     if [ -f $file_src ]; then
-        catkin_command="make -f build/${package_name}/Makefile src/${file_name}.o"
+        catkin_command="${make_verbose}make -f build/${package_name}/Makefile src/${file_name}.o"
     elif [ -f $file_any ]; then
-        catkin_command="make -f build/${package_name}/Makefile ${file_name}.o"
+        catkin_command="${make_verbose}make -f build/${package_name}/Makefile ${file_name}.o"
     else
         >&2 echo "Can't find file with path ${file_src} or ${file_any}"
         exit 1
@@ -307,7 +342,9 @@ if [ -z "$do_dryrun" ]; then
 
         kill $catkin_pid
     else
-        sudo machinectl shell ${user}@${container_name} \
+#        sudo machinectl shell ${user}@${container_name} \
+
+        sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 \
             /bin/bash -c "${final_command}"
     fi
 else

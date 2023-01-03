@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+fwd_port="${1:-9000}"
+fwd_to="${2:-0}"
+
+echo $fwd_to
+ip_addr="$(aws ec2 describe-instances | jq -r "nth($fwd_to; .Reservations[] | select(.Instances[0].Tags[] | .Key == \"sf-couchbase-db\")) | .Instances[0].NetworkInterfaces[0].PrivateIpAddress")"
+
+echo "Forwarding for port $fwd_port to $ip_addr"
+
+ssh -L "$fwd_port:$ip_addr:8091" woodward.swarmfarm.com

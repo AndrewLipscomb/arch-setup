@@ -7,6 +7,6 @@ until ping -c 1 v-$1.swarmfarm.com > /dev/null 2>&1; do
 done
 
 for i in {1..5}; do 
-    /home/andrew/bin/slacksend -c UHNP3N0KH -m "<@UHNP3N0KH> $1 appears to have turned on you. Go look at it"
+    "$HOME/bin/slacksend" -c UHNP3N0KH -m "<@UHNP3N0KH> $1 appears to have turned on you. Go look at it"
     sleep 3
 done

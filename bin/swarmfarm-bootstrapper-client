@@ -171,6 +171,8 @@ if [ -z "$host" ]; then
     host=$default_host
 fi
 
+user="${user:-$(whoami)}"
+
 if [ -z "$environment" ]; then
     environment=$default_environment
 fi

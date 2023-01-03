@@ -1,0 +1,3 @@
+#!/bin/bash 
+
+ssh "griffith$1.swarmfarm.com"

@@ -1,11 +1,15 @@
 #!/bin/bash
 
-if [ -z $1 ]; then 
+if [ -z $1 ]; then
     echo "No window provided"
     exit 1
 fi
 
 set -e
-
-i3-msg "move container to workspace number $1" > /dev/null
-i3-msg "workspace number $1" > /dev/null
+if [ -n "$SWAYSOCK" ]; then
+    swaymsg "move container to workspace number $1" > /dev/null
+    swaymsg "workspace number $1" > /dev/null
+else
+    i3-msg "move container to workspace number $1" > /dev/null
+    i3-msg "workspace number $1" > /dev/null
+fi

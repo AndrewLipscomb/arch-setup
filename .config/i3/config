@@ -45,7 +45,7 @@ bindsym XF86MonBrightnessDown exec --no-startup-id sudo cbacklight --dec 10
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec termite
+bindsym $mod+Return exec alacritty
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -96,11 +96,13 @@ bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 
 # change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
+#bindsym $mod+s layout stacking
+#bindsym $mod+w layout tabbed
+bindsym $mod+s layout tabbed
 bindsym $mod+KP_Add layout tabbed
 bindsym $mod+Insert layout tabbed 
 bindsym $mod+e layout toggle split
+bindsym $mod+t layout toggle stacking
 bindsym $mod+KP_Enter layout toggle split
 bindsym $mod+End layout toggle split
 
@@ -289,7 +291,6 @@ for_window [title=".*src - Code - OSS"] move --no-auto-back-and-forth to workspa
 for_window [class="Spotify"] move --no-auto-back-and-forth to workspace $ws9
 for_window [class="Chromium"] move --no-auto-back-and-forth to workspace $ws10
 
-exec --no-startup-id i3-msg "exec /usr/bin/termite"
 exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 #exec --no-startup-id i3-msg "exec /usr/bin/spotify"
 #exec --no-startup-id i3-msg "exec sbcode"
@@ -297,8 +298,7 @@ exec --no-startup-id i3-msg "exec /usr/bin/chromium"
 #exec --no-startup-id feh --bg-scale ~/backgrounds/binding.png
 exec --no-startup-id feh --bg-scale ~/backgrounds/pew3faxv4xp51.jpg
 
-exec --no-startup-id picom -b
-exec --no-startup-id i3-msg "exec termite -e check-ssh-on-login"
+#exec --no-startup-id picom -b
 
 bindsym Print exec --no-startup-id take-screenshot
 
@@ -322,10 +322,10 @@ set $gn     #88b090
 set $rd     #e89393
 
 # set some nice colors      border     background  text
-#client.focused              $ac        $ac         #000000
-#client.unfocused            $bg        $bg         $tx
-#client.focused_inactive     $bg        $bg         $ac
-#client.urgent               $rd        $rd         $tx
+client.focused              $ac        $ac         #000000
+client.unfocused            $bg        $bg         $tx
+client.focused_inactive     $bg        $bg         $ac
+client.urgent               $rd        $rd         $tx
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)

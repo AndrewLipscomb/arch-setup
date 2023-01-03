@@ -1,0 +1,7 @@
+[Unit]
+Description=Refresh SwarmFarm user token credentials
+
+[Service]
+ExecStart=/home/andrew.lipscomb/bin/swarmfarm-auth-login refresh 
+Type=oneshot
+

@@ -1,8 +1,11 @@
 #!/bin/bash
 
-cp ~/.config/termite/config_challenger ~/.config/termite/config
+>&2 echo "You need to update me for alacritty you lazy fucker"
+exit 1
 
-sed -E -i 's/^client\./#client\./g' ~/.config/i3/config
+#cp ~/.config/termite/config_challenger ~/.config/termite/config
 
-i3 restart
-echo "Do Ctrl+Shift+R in an open terminal to update"
+#sed -E -i 's/^client\./#client\./g' ~/.config/i3/config
+
+#i3 restart
+#echo "Do Ctrl+Shift+R in an open terminal to update"

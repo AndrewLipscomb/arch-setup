@@ -1,8 +1,11 @@
 #!/bin/bash 
 
-cp ~/.config/termite/config_gh ~/.config/termite/config
- 
-sed -E -i 's/^[#]+client\./client\./g' ~/.config/i3/config
+>&2 echo "Update me for alacritty you poo bar"
+exit 1
 
-i3 restart
-echo "Do Ctrl+Shift+R in an open terminal to update"
+#cp ~/.config/termite/config_gh ~/.config/termite/config
+ 
+#sed -E -i 's/^[#]+client\./client\./g' ~/.config/i3/config
+
+#i3 restart
+#echo "Do Ctrl+Shift+R in an open terminal to update"

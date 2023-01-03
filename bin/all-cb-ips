@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+aws ec2 describe-instances \
+    | jq -r ".Reservations[] | select(.Instances[0].Tags[] | .Key == \"sf-couchbase-db\") | .Instances[0].NetworkInterfaces[0].PrivateIpAddress"
+

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+swarmfarm-zt-curl member | jq "first(.[] | select(.name == \"$1\"))"

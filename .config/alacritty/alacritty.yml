@@ -1,0 +1,52 @@
+window:
+  dynamic_title: true
+
+font:
+  normal:
+    family: monospace
+    style: Regular
+  size: 14
+
+colors:
+  cursor:
+    #cursor: '#1C2023'
+    cursor: '#c6ffff'
+    text: '#fbfcfc'
+
+  selection:
+    text: '#DFE2E5'
+    background: '#DFE2E5'
+
+  primary:
+    background: '#120F1F'
+    foreground: '#cbe3e7'
+
+  normal:
+    black:   '#100e23'
+    red:     '#ff0000'
+    green:   '#95ffa4'
+    yellow:  '#ffe9aa'
+    blue:    '#91ddff'
+    magenta: '#906cff'
+    cyan:    '#aaffe4'
+    white:   '#cbe3e7'
+
+  bright:
+    black:   '#565575'
+    red:     '#ff5458'
+    green:   '#62d196'
+    yellow:  '#ffb378'
+    blue:    '#65b2ff'
+    magenta: '#c991e1'
+    cyan:    '#63f2f1'
+    white:   '#a6b3cc'
+
+hints:
+  enabled:
+   - regex: "(ipfs:|ipns:|magnet:|mailto:|gemini:|gopher:|https:|http:|news:|file:|git:|ssh:|ftp:)\
+             [^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
+     command: xdg-open
+     post_processing: true
+     mouse:
+       enabled: true
+       mods: Control

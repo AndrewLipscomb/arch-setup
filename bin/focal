@@ -8,4 +8,5 @@ if [ -n "$1" ]; then
     username="$1"
 fi
 
-sudo machinectl shell $username@dev-focal /bin/bash
+sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 /bin/bash
+#sudo machinectl shell $username@dev-focal /bin/bash

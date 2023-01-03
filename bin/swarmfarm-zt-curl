@@ -1,0 +1,90 @@
+#!/bin/bash
+
+script_name=$(basename "$0")
+
+if [[ $EUID -eq 0 ]]; then
+    >&2 echo "$script_name is not supposed to be run as root. Run as your regular user"
+    exit 1
+fi
+
+function print_help {
+    echo "Bootstrap script for generating and backing up a certificate"
+    echo ""
+    echo "Usage:"
+    echo "   $script_name [arguments]"
+    echo ""
+    echo "Other:"
+    echo "       --help                Print this help text"
+    echo "   -v, --verbose             Print some extra output"
+    echo "       --debug               Print lots of extra stuff to see what the script is attempting to do. Automatically sets --verbose"
+    echo ""
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]] #true for number of args more than 0
+do
+key="$1" # assigns the first arg to key
+
+case $key in
+    --help)
+        print_help
+        exit 0
+        ;;
+    -v|--verbose)
+        if [ -z "$verbose" ]; then
+            verbose="verbose"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    --debug)
+        if [ -z "$debug" ]; then
+            verbose="verbose"
+            debug="debug"
+            if [ -n "$debug" ]; then
+                echo "Printing debug output"
+            fi
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once"
+            exit 1
+        fi
+        ;;
+    *)
+        if [ -z "$url" ]; then
+            url="$1"
+            shift
+        else
+            >&2 echo "Unrecognised option $1"
+            exit 1
+        fi
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+# Test our preconditions. We need
+# ZT to exist so we can roll a ZT ID
+# AWS s3 to exist and be writable
+
+if [ -z "$url" ]; then
+    >&2 echo "Must define one argument for the URL"
+    exit 1
+fi
+
+if ! which zerotier-idtool > /dev/null; then
+    >&2 echo "Couldn't find zerotier-idtool in the path - path is $PATH"
+    >&2 echo "You may need to add /var/lib/zerotier-one to your standard shell path"
+    exit 1
+fi
+
+if [ -f /etc/swarmfarm/zerotier/token ]; then
+    ZT_TOKEN="$(cat /etc/swarmfarm/zerotier/token)"
+else
+    >&2 echo "It doesn't appear you have a ZT API token. Talk to Lippy about this"
+    exit 1
+fi
+
+curl -X GET -H "Authorization: Bearer ${ZT_TOKEN}" "https://my.zerotier.com/api/network/1c33c1ced0477420/${url}"

@@ -1,0 +1,9 @@
+[Unit]
+Description=Send messages to Slack when something says "whats up"
+
+[Service]
+Environment="PATH=/home/andrew.lipscomb/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+ExecStart=/home/andrew.lipscomb/.local/share/swarmfarm/whats_up/server.py --channel UHNP3N0KH
+
+[Install]
+WantedBy=default.target

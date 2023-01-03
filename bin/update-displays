@@ -1,14 +1,21 @@
 #!/bin/bash
 
+if [[ -n $WAYLAND_DISPLAY ]]; then 
+    >&2 echo "Not for wayland"
+    exit 1
+fi
+
 xrandr_output="$(/usr/bin/xrandr --query)"
 
 side="$1"
-if [ -z "$side" ]; then 
+if [ -z "$side" ]; then
     side="left"
 fi
 
-middle=DP-1
-left=HDMI-2
+left=DP-2
+middle=HDMI-1
+
+xrandr --output eDP-1 --scale 1x1
 
 if echo "$xrandr_output" | grep -P "^$middle connected"; then
     xrandr --output $middle --auto "--$side-of" eDP-1
@@ -16,10 +23,11 @@ fi
 
 if echo "$xrandr_output" | grep -P "^$middle disconnected"; then
     xrandr --output $middle --off
+    left_off=true
 fi
 
 
-if echo "$xrandr_output" | grep -P "^$left connected"; then 
+if echo "$xrandr_output" | grep -P "^$left connected"; then
     if echo "$xrandr_output" | grep -P "^$middle connected"; then
         xrandr --output $left --auto "--$side-of" $middle
     else
@@ -27,6 +35,11 @@ if echo "$xrandr_output" | grep -P "^$left connected"; then
     fi
 fi
 
-if echo "$xrandr_output" | grep -P "^$left disconnected"; then 
+if echo "$xrandr_output" | grep -P "^$left disconnected"; then
     xrandr --output $left --off
-fi 
+    middle_off=true
+fi
+
+if [ -n "$left_off" ] && [ -n "$middle_off" ]; then 
+    xrandr --output eDP-1 --scale 0.5x0.5
+fi

@@ -1,0 +1,5 @@
+[Service]
+ExecStart=/bin/bash /home/andrew.lipscomb/bin/get-comp-back
+
+[Install]
+WantedBy=default.target

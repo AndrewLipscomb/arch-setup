@@ -1,0 +1,16 @@
+#!/bin/bash 
+set -e 
+
+fwd_to="${1:-0}"
+
+ip_addr="$(aws ec2 describe-instances | jq -r "nth($fwd_to; .Reservations[] | select(.Instances[0].Tags[] | .Key == \"sf-couchbase-sgw\")) | .Instances[0].NetworkInterfaces[0].PrivateIpAddress")"
+
+#ip_addr="$(aws ec2 describe-instances | jq -r 'first(.Reservations[] | select(.Instances[0].Tags) | select(.Instances[0].Tags[] | .Key == "sf-couchbase-sgw")) | .Instances[0].NetworkInterfaces[0].PrivateIpAddress')"
+
+echo "$ip_addr"
+
+if [ -n "$ip_addr" ]; then 
+    ssh -J woodward.swarmfarm.com "$ip_addr"
+else 
+    exit 1
+fi

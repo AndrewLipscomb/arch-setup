@@ -2,7 +2,8 @@
 
 args="roslaunch simulation headless_simulation.launch $@"
 
-sudo machinectl shell andrew@dev-focal \
+sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 \
     /bin/bash -c "source ~/.config/swarmfarm/swarmbot_build_env; \
+    source ~/.config/swarmfarm/swarmbot_sim_env; \
     rosparam load /etc/swarmfarm/swarmbot/config/machine_specific.yaml; \
     $args"

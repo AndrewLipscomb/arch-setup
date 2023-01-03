@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+
+scope_arg=$1
+target_scope=sb-00$2
+
+swarmfarm-param-cli query -s "$scope_arg" | jq ".id = \"$target_scope\"" | swarmfarm-param-cli put -s "$target_scope"
+swarmfarm-param-cli query -t "$scope_arg" | jq ".id = \"$target_scope\" | .scopes[] |= if .id == \"$scope_arg\" then .id = \"$target_scope\" else . end" | swarmfarm-param-cli put -t "$target_scope"
+
+modifiers=$(swarmfarm-curl -s $(swarmfarm-param-cli query -s $scope_arg | jq '._links.modifiers.href' -r) | jq '.modifiers' -r)
+
+for row in $(echo $modifiers | jq '.[]' -c -r); do
+
+    recurse="$(swarmfarm-curl $(echo $row | jq '.uri' -r))"
+
+    id=$(echo "$recurse" | jq -r '._links.parameter.id')
+    if [ -z "$id" ]; then 
+        >&2 echo "ID is nil for $recurse - this is wrong"
+        exit 1
+    fi
+    value="$(swarmfarm-param-cli lookup -t "$scope_arg" -p "$id" | jq -r .value)"
+
+    swarmfarm-param-cli query -s "$scope_arg" -p "$id" | swarmfarm-param-cli put -s "$target_scope" -p "$id" --validate "$target_scope"
+
+    new_value="$(swarmfarm-param-cli lookup -t "$target_scope" -p "$id" | jq -r .value)"
+
+    if [ "$value" != "$new_value" ]; then
+        >&2 echo "Scope swap didn't work for $id param - value start was $value, value after was $new_value"
+        exit 1
+    fi
+
+    # Don't want to hit rate limiter
+    sleep 1
+
+done

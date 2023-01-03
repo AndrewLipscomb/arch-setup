@@ -18,6 +18,7 @@ function print_help {
     echo "   start                     Starts the nspawn machine"
     echo "   stop                      Stops the machine"
     echo "   sh                        Spawns a shell into the machine"
+    echo "   kill                      Kills a machine forcefully"
     echo ""
     echo "Other:"
     echo "       --help                Print this help text"
@@ -85,7 +86,7 @@ case $key in
         if [ -z "$command" ]; then
             command="$1"
             shift
-            if [[ "$command" != "start" ]] && [[ "$command" != "stop" ]] && [[ "$command" != "sh" ]]; then
+            if [[ "$command" != "start" ]] && [[ "$command" != "stop" ]] && [[ "$command" != "sh" ]] && [[ "$command" != "kill" ]]; then
                 >&2 echo "Unrecognised argument $1"
                 exit 1
             fi
@@ -115,11 +116,12 @@ fi
 
 machine_name="focal-nuvo-${machine}"
 
-if [[ "$command" == "start" ]] || [[ "$command" == "stop" ]]; then
+if [[ "$command" == "start" ]] || [[ "$command" == "stop" ]] || [[ "$command" == "kill" ]]; then
     sudo machinectl "$command" "$machine_name"
     exit $?
 elif [[ "$command" == "sh" ]]; then
-    sudo machinectl shell "root@${machine_name}" /bin/bash
+#    sudo machinectl shell "root@${machine_name}" /bin/bash
+    sudo systemd-run --machine "$machine_name" --pty /bin/bash
     exit $?
 else
     >&2 echo "Assertion failure; unhandled command type - command was $command"

@@ -2,5 +2,8 @@
 
 set -e
 
-maim -s --format png /dev/stdout | xclip -selection clipboard -t image/png -i
-exit $?
+if [ -n "$WAYLAND_DISPLAY" ]; then 
+  grim -g "$(slurp)" - | wl-copy
+else 
+  maim -s --format png /dev/stdout | xclip -selection clipboard -t image/png -i
+fi

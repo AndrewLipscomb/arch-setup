@@ -1,0 +1,11 @@
+image=/home/andrew.lipscomb/backgrounds/pew3faxv4xp51.jpg
+scaling=fill
+color=120f1f
+inside-color=120f1f
+ring-color=fbfcfc
+ring-ver-color=95ffa4
+layout-bg-color=120f1f00
+indicator-radius=100
+indicator-thickness=30
+ignore-empty-password
+daemonize

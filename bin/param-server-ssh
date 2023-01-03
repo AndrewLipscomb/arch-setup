@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+ip_addr="$(aws ec2 describe-instances | jq -r 'first(.Reservations[] | select(.Instances[0].Tags[] | .Key == "sf-param-server")) | .Instances[0].NetworkInterfaces[0].PrivateIpAddress')"
+
+if [ -n "$ip_addr" ]; then
+    ssh -J woodward.swarmfarm.com "$ip_addr"
+else
+    exit 1
+fi

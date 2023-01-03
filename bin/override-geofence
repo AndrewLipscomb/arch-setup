@@ -1,0 +1,16 @@
+#!/bin/bash
+
+uuid=
+if which uuid > /dev/null 2>&1; then
+    uuid="$(uuid)"
+elif which uuidgen > /dev/null 2>&1; then
+    uuid="$(uuidgen)"
+else
+    >&2 echo "No UUID generation program on this machine"
+    exit 1
+fi
+
+while true; do 
+    curl -k -X POST https://localhost:15434/v4/auto/overrideGeofence -d '{"uuid": "'"$uuid"'"}' > /dev/null 2>&1
+    sleep 1
+done

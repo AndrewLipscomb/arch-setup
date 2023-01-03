@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if systemctl --user is-active pipewire; then 
+    systemctl --user stop pipewire
+    systemctl --user start pulseaudio
+else 
+    systemctl --user stop pulseaudio
+    systemctl --user start pipewire
+fi 

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+last_cont="$(sudo docker ps -a | head -n 2 | tail -n 1 | awk '{print $NF}')"
+
+sudo docker exec -it "$last_cont" /bin/bash

@@ -3,44 +3,44 @@ scrollback_lines = 1000
 font = Monospace 14
 
 [colors]
-# Challenger Deep - https://challenger-deep-theme.github.io/
+# GH scheme - https://github.com/Mayccoll/Gogh
 
-foreground          = #cbe3e7
-foreground_bold     = #DFE2E5
-cursor              = #fbfcfc
-cursor_foreground   = #1C2023
-background          = #120F1F
+foreground          = #3e3e3e
+foreground_bold     = #3e3e3e
+cursor              = #3e3e3e
+cursor_foreground   = #3e3e3e
+background          = #f4f4f4
 
 # 16 color space
 
 # Black, Gray
-color0  = #100e23
-color8  = #565575
+color0  = #3e3e3e
+color8  = #666666
 
 # Red
-color1  = #ff8080
-color9  = #ff5458
+color1  = #970b16
+color9  = #de0000
 
 # Green
-color2  = #95ffa4
-color10 = #62d196
+color2  = #07962a
+color10 = #87d5a2
 
 # Yellow
-color3  = #ffe9aa
-color11 = #ffb378
+color3  = #f8eec7
+color11 = #f1d007
 
 # Blue
-color4  = #91ddff
-color12 = #65b2ff
+color4  = #003e8a
+color12 = #2e6cba
 
 # Purple
-color5  = #c991e1
-color13 = #906cff
+color5  = #c991e1 
+color13 = #ffa29f
 
 # Teal
-color6  = #aaffe4
-color14 = #63f2f1
+color6  = #89d1ec
+color14 = #1cfafe
 
 # Silver, White
-color7  = #cbe3e7
-color15 = #a6b3cc
+color7  = #ffffff
+color15 = #ffffff

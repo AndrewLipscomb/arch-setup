@@ -5,10 +5,17 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-if drill "$1.swarmfarm.com" | grep -qE "IN\s+A\s+192.168.50"; then
-    name="$1.swarmfarm.com"
+identifier="$1"
+
+re='^[0-9]+$'
+if [[ $identifier =~ $re ]] ; then
+    identifier="sb-$(printf %4s "$identifier" | tr ' ' 0)"
+fi
+
+if drill "$identifier.swarmfarm.com" | grep -qE "IN\s+A\s+192.168.50"; then
+    name="$identifier.swarmfarm.com"
 else 
-    name="v-$1.swarmfarm.com"
+    name="v-$identifier.swarmfarm.com"
 fi
 
 ping "$name"

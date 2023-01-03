@@ -1,11 +1,16 @@
 #!/bin/bash
 
-if [ -z $1 ]; then 
+if [ -z $1 ]; then
     echo "No window provided"
     exit 1
 fi
 
 set -e
 
-i3-msg "workspace number $1" > /dev/null
-i3-msg "exec /usr/bin/termite" > /dev/null
+if [ -z "$SWAYSOCK" ]; then
+    swaymsg "workspace number $1" > /dev/null
+    swaymsg "exec /usr/bin/termite" > /dev/null
+else
+    i3-msg "workspace number $1" > /dev/null
+    i3-msg "exec /usr/bin/termite" > /dev/null
+fi

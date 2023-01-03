@@ -1,0 +1,9 @@
+[Unit]
+Description=Syncthing agent
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/syncthing serve --no-browser
+
+[Install]
+WantedBy=default.target

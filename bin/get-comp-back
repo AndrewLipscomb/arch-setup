@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+until ping -c 1 172.22.143.105  > /dev/null 2>&1; do
+    sleep 3
+done
+
+while true; do
+    "$HOME/bin/slacksend" -c UHNP3N0KH -m "<@UHNP3N0KH> YOUR COMPUTER HAS TURNED ON - KILL THE FUCKERS WITH FIRE AND FURY"
+    sleep 5
+done
