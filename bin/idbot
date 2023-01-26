@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+curl https://robot-identities.swarmfarm.com | jq "to_entries[] | select( .value.legacy_name == \"$1\" )"
