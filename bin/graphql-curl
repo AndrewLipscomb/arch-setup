@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+# First arg is path to a gql file
+gql="$(cat "$1")"
+
+gql="$(echo {} | jq ".query = \"${gql}\"")"
+
+CURL="${CURL:-swarmfarm-curl}"
+SERVER="${SERVER:-https://geospatial.swarmfarm.com:26133/graphql}"
+
+# Source an .env if its present to override the above
+cd "$(dirname "$0")" || exit 1
+if [ -f .env ]; then
+    . .env
+fi
+
+# Second arg is variables
+if [ -n "$2" ]; then
+    gql="$(echo "$gql" | jq ".variables = { $2 }")"
+fi
+
+"$CURL" "$SERVER" \
+  -X POST \
+  -H 'content-type: application/json' \
+  --json "$gql"

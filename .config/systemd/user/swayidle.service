@@ -3,7 +3,7 @@ Name=swayidle
 
 [Service]
 ExecStart=/usr/bin/swayidle -w \
-    timeout 60 "swaylock" \
-    timeout 60 'swaymsg "output * dpms off"' \
+    timeout 150 "swaylock" \
+    timeout 120 'swaymsg "output * dpms off"' \
     resume 'swaymsg "output * dpms on"' \
     before-sleep "swaylock"

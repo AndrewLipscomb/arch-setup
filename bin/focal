@@ -8,5 +8,6 @@ if [ -n "$1" ]; then
     username="$1"
 fi
 
-sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 /bin/bash
+sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 /bin/bash -c 'cd ~/; /bin/bash'
+# https://github.com/systemd/systemd/issues/22234#issuecomment-1024897507 - focal needs this patch to resolve this issue
 #sudo machinectl shell $username@dev-focal /bin/bash
