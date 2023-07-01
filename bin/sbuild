@@ -304,7 +304,9 @@ else
     catkin_verbose="-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF"
 fi
 
-catkin_command="ROS_LANG_DISABLE=genlisp catkin_make ${no_colour} ${package_arg} -j${cores} ${install} ${catkin_verbose} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
+build_folder="build/${cmake_type}"
+
+catkin_command="ROS_LANG_DISABLE=genlisp catkin_make --build ${build_folder} ${no_colour} ${package_arg} -j${cores} ${install} ${catkin_verbose} -DCMAKE_BUILD_TYPE=${cmake_type} ${test_target}"
 
 if [ -n "$file_name" ]; then
     if [ -n "$install" ]; then
