@@ -8,4 +8,5 @@ layout-bg-color=120f1f00
 indicator-radius=100
 indicator-thickness=30
 ignore-empty-password
+show-keyboard-layout
 daemonize

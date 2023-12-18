@@ -13,6 +13,7 @@ default_local_hosts="localhost/4"
 default_dist_cores="16"
 #default_dist_hosts=$'localhost/4\n192.168.50.21/6\n192.168.50.22/6'
 default_dist_hosts=$'localhost/4\n192.168.50.21/6'
+default_code_directory="$HOME/swarmbot4"
 
 hosts="$default_local_hosts"
 
@@ -28,6 +29,7 @@ function print_help {
     echo "   -o | --only {PACKAGE[,PACKAGE](:FILE.cpp)}  build a single package or file in isolation"
     echo "                                               For packages specify a package name or multiple, with , seperation. Uses CATKIN_WHITELIST_PACKAGES to skip all deps"
     echo "                                               For a single file - do package then filename in src dir with : inbetween. Does not work with other build options"
+    echo "   -d | --directory                            The directory in which to start building. Defaults to ${default_code_directory}"
     echo "   -t | --tests                                whether to build tests"
     echo "        --install                              Whether to do an install"
     echo "        --debug | --release "
@@ -36,7 +38,7 @@ function print_help {
     echo ""
     echo " How to build it"
     echo "   -c | --cores {CORES}           the amount of cores to use. Defaults to 6, and ups to 16 automatically if --dist is specified"
-    echo "   -d | --dist                    use a distributed build. This is hardcoded around the Bendee distcc config"
+    echo "        --dist                    use a distributed build. This is hardcoded around the Bendee distcc config"
     echo "   -h | --hosts {HOSTS}           the distcc hosts to use. Defaults to the bendee standard. This argument requires newline seperation ala the hosts config file for distcc"
     echo "   -e | --env-file {FILE}         an environment file to source before building. This can be a systemd EnvironmentFile or a bash file"
     echo "                                  Defaults to ~/.swarmbot_build_env"
@@ -70,7 +72,7 @@ case $key in
             exit 1
         fi
         ;;
-    -d|--dist)
+    --dist)
         if [ -z "$seen_dist" ]; then
             seen_dist="yes"
             # Bump cores if not manually specified
@@ -108,6 +110,16 @@ case $key in
                 cmake_type="$1"
             fi
             seen_type="yes"
+            shift
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    -d|--directory)
+        if [ -z "$code_directory" ]; then
+            shift
+            code_directory="$1"
             shift
         else
             >&2 echo "Can't specify $1 more than once - see $script_name --help"
@@ -289,7 +301,8 @@ fi
 if [ -z "$source_command" ]; then
     source_command="if [ -f ${env_file} ]; then echo Sourcing ${env_file}; source ${env_file}; else echo 'Could not source file ${env_file}'; exit 1; fi"
 fi
-cd_command="cd $HOME/swarmbot4/swarmbot_ws"
+code_directory="${code_directory:-$default_code_directory}"
+cd_command="cd $code_directory/swarmbot_ws"
 set_c_and_cxx_compiler="export CC='ccache gcc-${gcc}'; export CXX='ccache g++-${gcc}'"
 set_ccache_prefix="export CCACHE_PREFIX=distcc"
 set_distcc_file="echo -e \"${hosts}\" | tee ~/.distcc/hosts"
@@ -322,9 +335,9 @@ if [ -n "$file_name" ]; then
     fi
 
     if [ -f $file_src ]; then
-        catkin_command="${make_verbose}make -f build/${package_name}/Makefile src/${file_name}.o"
+        catkin_command="${make_verbose}make -f ${build_folder}/${package_name}/Makefile src/${file_name}.o"
     elif [ -f $file_any ]; then
-        catkin_command="${make_verbose}make -f build/${package_name}/Makefile ${file_name}.o"
+        catkin_command="${make_verbose}make -f ${build_folder}/${package_name}/Makefile ${file_name}.o"
     else
         >&2 echo "Can't find file with path ${file_src} or ${file_any}"
         exit 1

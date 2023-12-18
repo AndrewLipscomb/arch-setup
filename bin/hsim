@@ -1,9 +1,86 @@
 #!/bin/bash
 
-args="roslaunch simulation headless_simulation.launch $@"
+script_name=$(basename "$0")
+default_source_dir="$HOME/swarmbot4"
+
+function print_help {
+    echo "Runs a sim swarmbot"
+    echo ""
+    echo "   -d | --directory              The source dir to source - defaults to ${default_source_dir}"
+    echo "        --help                   print this help text"
+}
+
+
+args=( roslaunch simulation headless_simulation.launch "$@" )
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+key="$1"
+
+case $key in
+    -d|--directory)
+        if [ -z "$source_dir" ]; then
+            shift
+            source_dir="$1"
+            shift # past argument
+        else
+            >&2 echo "Can't specify $1 more than once - see $script_name --help"
+            exit 1
+        fi
+        ;;
+    --help)
+        print_help
+        exit 0
+        ;;
+    *)    # unknown option
+        shift
+        ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+source_dir="${source_dir:-$default_source_dir}"
+
+sb_tmp_dir="/run/user/$(id -u)/swarmfarm/swarmbot"
+mkdir -p "$sb_tmp_dir"
+tmp_env_file="$sb_tmp_dir/swarmbot_tmp_env"
+
+cat >"$tmp_env_file" <<EOF
+#!/bin/bash
+
+if [ -f ~/.cppconfig.bash ]; then
+    source ~/.cppconfig.bash
+fi
+
+if [ -f /opt/ros/noetic/setup.bash ]; then
+    source /opt/ros/noetic/setup.bash
+elif [ -f /opt/ros/kinetic/setup.bash ]; then
+    source /opt/ros/kinetic/setup.bash
+fi
+
+if [ -f $source_dir/swarmbot_ws/devel/setup.bash ]; then
+    if ! grep -q -R -e \$ROS_DISTRO  $source_dir/swarmbot_ws/devel/_setup_util.py; then
+        >&2 echo "Didn't find the right distro (\$ROS_DISTRO) in devel files - has this been built for another distro?"
+        exit 1
+    fi
+    source $source_dir/swarmbot_ws/devel/setup.bash
+fi
+
+export launch_name="sim"
+export ROS_MASTER_URI="http://localhost:11311"
+export ROS_HOSTNAME="localhost"
+
+if [ -d ~/bin ]; then
+	PATH=\$PATH:~/bin
+fi
+
+export ROS_PARAM_REDIS_ADDRESS="127.0.0.1"
+export ROS_PARAM_REDIS_PORT="6379"
+EOF
+
+echo "${args[*]}"
 
 sudo systemd-run --machine dev-focal --pty --uid 1000 --gid 1000 \
-    /bin/bash -c "source ~/.config/swarmfarm/swarmbot_build_env; \
-    source ~/.config/swarmfarm/swarmbot_sim_env; \
+    /bin/bash -c "source $tmp_env_file; \
     rosparam load /etc/swarmfarm/swarmbot/config/machine_specific.yaml; \
-    $args"
+    ${args[*]}"

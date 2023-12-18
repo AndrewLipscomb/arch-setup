@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup items to aws bucket altinners-creds
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1day
+
+[Install]
+WantedBy=timers.target

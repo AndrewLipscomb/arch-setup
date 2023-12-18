@@ -3,7 +3,10 @@ Name=swayidle
 
 [Service]
 ExecStart=/usr/bin/swayidle -w \
-    timeout 150 "swaylock" \
-    timeout 120 'swaymsg "output * dpms off"' \
+    timeout 600 "swaylock" \
+    timeout 540 'swaymsg "output * dpms off"' \
     resume 'swaymsg "output * dpms on"' \
     before-sleep "swaylock"
+
+[Install]
+WantedBy=default.target
