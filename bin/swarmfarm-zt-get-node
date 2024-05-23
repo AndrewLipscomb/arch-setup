@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#swarmfarm-zt-curl member | jq "first(.[] | select(.name == \"$1\"))"
+swarmfarm-zt-curl member | jq "first(.[] | select(.name == \"$1\"))"
 
-swarmfarm-zt-curl member | jq "first(.[] | select(.config.ipAssignments[] == \"$1\"))"
+#swarmfarm-zt-curl member | jq "first(.[] | select(.config.ipAssignments[] == \"$1\"))"
 
 #any(.fruit[]; . == "orange")

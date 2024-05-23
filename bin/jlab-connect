@@ -1,0 +1,8 @@
+#!/bin/bash 
+
+set -e
+
+sudo systemctl start bluetooth.service
+bluetoothctl connect 3A:C9:D4:0A:47:04
+#pactl set-default-sink bluez_output.3A_C9_D4_0A_47_04.1
+wpctl set-default 89

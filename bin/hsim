@@ -11,7 +11,8 @@ function print_help {
 }
 
 
-args=( roslaunch simulation headless_simulation.launch "$@" )
+#args=( roslaunch simulation headless_simulation.launch "$@" )
+args=( mon launch --disable-ui --stop-timeout 15 simulation headless_simulation.launch "$@" )
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do

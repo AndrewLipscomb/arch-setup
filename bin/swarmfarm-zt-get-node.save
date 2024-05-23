@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#swarmfarm-zt-curl member | jq "first(.[] | select(.name == \"$1\"))"
+
+if [ -z "$2" ]; then
+    >&2 echo "Not enough args - expects --ip or --name"
+    exit 1 
+fi
+
+if [ "$1" == "--name" ]; then
+    swarmfarm-zt-curl member | jq "first(.[] | select(.name == \"$1\"))"
+elsif [ "$1" == "--ip" ]; then
+    swarmfarm-zt-curl member | jq "first(.[] | select(.config.ipAssignments[] == \"$1\"))"
+else
+    >&2 echo "Expects --ip or --name"
+    exit 1
+fi

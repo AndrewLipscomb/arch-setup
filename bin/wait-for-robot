@@ -7,4 +7,4 @@ if [[ $identifier =~ $re ]] ; then
     identifier="sb-$(printf %4s "$identifier" | tr ' ' 0)"
 fi
 
-systemctl --user start swarmfarm-wait-for-robot@$1.service
+systemctl --user start "swarmfarm-wait-for-robot@$identifier.service"

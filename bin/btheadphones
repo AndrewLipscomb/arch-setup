@@ -2,4 +2,6 @@
 
 bluetoothctl power on 
 
-bluetoothctl connect 90:7A:58:32:5B:AF 
+sleep 5
+
+bluetoothctl connect 6B:1F:34:7B:CE:D5 

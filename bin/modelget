@@ -1,0 +1,3 @@
+#!/bin/bash 
+
+aws s3 cp --quiet "s3://swarmfarm-model-storage/$1" "${2:-/dev/stdout}"

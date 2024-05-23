@@ -35,6 +35,7 @@ output 'Dell Inc. DELL S2721DS 3SJHQ43' position 0,0
 output 'Dell Inc. DELL SE2723DS 6ZSJQT3' position 0,0
 # Work desk screen middle
 output 'Dell Inc. DELL S2721DS 44KHQ43' resolution 2560x1440 position 2560,0
+output 'Dell Inc. DELL SE2723DS 8BYJQT3' resolution 2560x1440 position 2560,0
 output 'Unknown HP 24fw 3CM92405GP   ' position 3200,0
 output 'Unknown 0x1407 0x00000000' position 5120,0
 # Laptop screen

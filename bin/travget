@@ -1,0 +1,3 @@
+#!/bin/bash
+
+aws s3 cp --quiet "s3://swarmfarm-traversal-failures/$1" "/dev/stdout" | gzip -d 

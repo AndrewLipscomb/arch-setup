@@ -1,0 +1,8 @@
+#!/bin/bash 
+
+set -e
+
+bluetoothctl disconnect
+sudo systemctl stop bluetooth.service
+#pactl set-default-sink alsa_output.pci-0000_07_00.6.HiFi__hw_Generic_1__sink
+wpctl set-default 64
